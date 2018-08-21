@@ -9,3 +9,4 @@ if(MINGW OR UNIX)
 endif()
 
 add_subdirectory(nat-punch)
+add_subdirectory(test)
