@@ -23,7 +23,7 @@
 #include <pjnath.h>
 
 
-#define THIS_FILE   "icedemo.c"
+#define THIS_FILE   "ice1.c"
 
 /* For this demo app, configure longer STUN keep-alive time
  * so that it does't clutter the screen output.
