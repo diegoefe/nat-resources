@@ -14,3 +14,6 @@
 | libre | 0.5.8 | [download](http://www.creytiv.com/pub) | ICE does not support TCP |
 | sourcey | 1.1.4 | [download](https://github.com/sourcey/libsourcey/archive/1.1.4.tar.gz) | |
 | reciprocate | 1.10.2 | [download](https://github.com/resiprocate/resiprocate/archive/resiprocate-1.10.2.tar.gz) | |
+
+[List of public STUN servers](stun_servers.txt)
+
