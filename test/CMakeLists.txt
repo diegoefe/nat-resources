@@ -14,8 +14,8 @@ list(APPEND pjs ${pj})
 
 add_executable(ice_pj_ori icedemo.c)
 target_link_libraries(ice_pj_ori ${pjs} pthread m)
-add_executable(icepj icepj.c)
-target_link_libraries(icepj ${pjs} pthread m)
+add_executable(tpj tpj.c)
+target_link_libraries(tpj ${pjs} pthread m)
 
 
 # libnice
@@ -29,5 +29,5 @@ add_executable(ice_nice_sdp sdp-example.c)
 target_link_libraries(ice_nice_sdp ${nices})
 add_executable(ice_nice_simple simple-example.c)
 target_link_libraries(ice_nice_simple ${nices})
-add_executable(icenice icenice.c)
-target_link_libraries(icenice ${nices})
+add_executable(tnice tnice.c)
+target_link_libraries(tnice ${nices})
