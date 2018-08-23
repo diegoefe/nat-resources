@@ -10,5 +10,5 @@ export G_MESSAGES_DEBUG=all
 # Check memory allocation 
 export G_SLICE=debug-blocks
 
-./tnice "$@"
+./tnice "$@" 2>&1 | tee tnice.log
 

@@ -32,4 +32,5 @@ target_link_libraries(ice_nice_simple ${nices})
 add_executable(tnice tnice.c)
 target_link_libraries(tnice ${nices})
 
-configure_file(run_tnice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+configure_file(run_pj.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
