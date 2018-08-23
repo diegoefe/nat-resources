@@ -14,18 +14,20 @@ list(APPEND pjs ${pj})
 
 add_executable(ice_pj_ori icedemo.c)
 target_link_libraries(ice_pj_ori ${pjs} pthread m)
-
-add_executable(ice_pj ice1.c)
-target_link_libraries(ice_pj ${pjs} pthread m)
+add_executable(icepj icepj.c)
+target_link_libraries(icepj ${pjs} pthread m)
 
 
 # libnice
 include_directories(${ibase}/include/nice)
 include_directories(/usr/include/glib-2.0)
 include_directories(/usr/lib/x86_64-linux-gnu/glib-2.0/include)
-list(APPEND nices ${nice} gio-2.0 gobject-2.0 gthread-2.0 pthread glib-2.0)
 find_library(nice nice PATH ${ibase}/lib)
+list(APPEND nices ${nice} gio-2.0 gobject-2.0 gthread-2.0 pthread glib-2.0)
+
 add_executable(ice_nice_sdp sdp-example.c)
 target_link_libraries(ice_nice_sdp ${nices})
 add_executable(ice_nice_simple simple-example.c)
 target_link_libraries(ice_nice_simple ${nices})
+add_executable(icenice icenice.c)
+target_link_libraries(icenice ${nices})
