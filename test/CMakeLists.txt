@@ -34,3 +34,4 @@ target_link_libraries(tnice ${nices})
 
 configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 configure_file(run_pj.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)

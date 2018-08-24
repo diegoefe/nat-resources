@@ -1,4 +1,6 @@
+#!/usr/bin/env bash
+. common.sh
 ./tpj \
-	--stun-srv stun1.l.google.com:19302 \
-	--log-file tpj.log
+	--stun-srv ${st_ip}m:${st_port} \
+	--log-file tpj_${now}.log
 

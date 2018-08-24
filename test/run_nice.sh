@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. common.sh
 
 # Stop on assertions:
 # export G_DEBUG=fatal_warnings
@@ -10,5 +11,5 @@ export G_MESSAGES_DEBUG=all
 # Check memory allocation 
 export G_SLICE=debug-blocks
 
-./tnice "$@" 2>&1 | tee tnice.log
+LD_LIBRARY_PATH=. ./tnice "$@" ${st_ip}:${st_port} 2>&1 | tee tnice_${now}.log
 
