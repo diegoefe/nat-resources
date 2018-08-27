@@ -113,8 +113,8 @@ main(int argc, char *argv[])
 #endif
 
   // Create the nice agent
-  agent = nice_agent_new(g_main_loop_get_context (gloop), NICE_COMPATIBILITY_RFC5245);
-  // agent = nice_agent_new_reliable(g_main_loop_get_context (gloop), NICE_COMPATIBILITY_RFC5245);
+  // agent = nice_agent_new(g_main_loop_get_context (gloop), NICE_COMPATIBILITY_RFC5245);
+  agent = nice_agent_new_reliable(g_main_loop_get_context (gloop), NICE_COMPATIBILITY_RFC5245);
   if (agent == NULL)
     g_error("Failed to create agent");
 
