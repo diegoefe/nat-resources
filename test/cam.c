@@ -24,11 +24,13 @@ static struct app_t
 	int	    max_host;
 	pj_bool_t   regular;
 	pj_str_t    stun_srv;
+	#if 0
 	pj_str_t    turn_srv;
 	pj_bool_t   turn_tcp;
 	pj_str_t    turn_username;
 	pj_str_t    turn_password;
 	pj_bool_t   turn_fingerprint;
+	#endif
 	const char *log_file;
     } opt;
 
@@ -344,6 +346,7 @@ static pj_status_t cam_init(void)
 	cam.ice_cfg.stun.cfg.ka_interval = KA_INTERVAL;
     }
 
+	#if 0
     /* Configure TURN candidate */
     if (cam.opt.turn_srv.slen) {
 	char *pos;
@@ -376,6 +379,7 @@ static pj_status_t cam_init(void)
 	 */
 	cam.ice_cfg.turn.alloc_param.ka_interval = KA_INTERVAL;
     }
+	 #endif
 
     /* -= That's it for now, initialization is complete =- */
     return PJ_SUCCESS;
@@ -450,6 +454,7 @@ static void cam_init_session(unsigned rolechar)
 				PJ_ICE_SESS_ROLE_CONTROLLED);
     pj_status_t status;
 
+	PJ_LOG(3,(THIS_FILE, "SESSION 1 ------------------------------------------------"));
     if (cam.icest == NULL) {
 	PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
 	return;
@@ -459,6 +464,7 @@ static void cam_init_session(unsigned rolechar)
 	PJ_LOG(1,(THIS_FILE, "Error: Session already created"));
 	return;
     }
+	PJ_LOG(3,(THIS_FILE, "SESSION 2 ------------------------------------------------"));
 
     status = pj_ice_strans_init_ice(cam.icest, role, NULL, NULL);
     if (status != PJ_SUCCESS)
@@ -466,7 +472,9 @@ static void cam_init_session(unsigned rolechar)
     else
 	PJ_LOG(3,(THIS_FILE, "ICE session created"));
 
+	PJ_LOG(3,(THIS_FILE, "SESSION 3 ------------------------------------------------"));
     reset_rem_info();
+	PJ_LOG(3,(THIS_FILE, "SESSION 4 ------------------------------------------------"));
 }
 
 
@@ -1044,6 +1052,21 @@ static void cam_print_menu(void)
 }
 
 
+static void cam_run() {
+	cam_create_instance();
+	cam_init_session('o');
+	getchar();
+	cam_show_ice();
+	//cam_input_remote();
+	// cam_start_nego();
+}
+
+static void cam_stop() {
+	cam_stop_session();
+	cam_destroy_instance();
+}
+
+#if 0
 /*
  * Main console loop.
  */
@@ -1133,6 +1156,7 @@ static void cam_console(void)
 	}
     }
 }
+#endif
 
 
 /*
@@ -1260,7 +1284,10 @@ int main(int argc, char *argv[])
     if (status != PJ_SUCCESS)
 	return 1;
 
-    cam_console();
+    // cam_console();
+	 cam_run();
+	getchar();
+	cam_stop();
 
     err_exit("Quitting..", PJ_SUCCESS);
     return 0;
