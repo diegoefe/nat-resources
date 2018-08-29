@@ -1,0 +1,4 @@
+## Commands for capturing packets
+
+- sudo tcpdump -i lo -w my.cap
+- sudo tcpdump -i lo port 8554 -w my.cap
