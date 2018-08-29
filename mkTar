@@ -3,26 +3,27 @@
 proj=$(basename "$(pwd)")
 tf="${proj}_$(date +%Y%m%d_%H%M%S).tar"
 
-pdir=""
-for dir in forked tests tests/win32 web works
-do
-	existe=$(ls ../git/${dir}/${proj}*.tar.* 2>/dev/null)
-	#echo "existe(${existe})"
-	if [ ! -z "${existe}" ]
-	then
-		pdir="/${dir}"
-		break;
-	fi
-done
+##pdir=""
+##for dir in forked tests tests/win32 web works
+##do
+##	existe=$(ls ../git/${dir}/${proj}*.tar.* 2>/dev/null)
+##	#echo "existe(${existe})"
+##	if [ ! -z "${existe}" ]
+##	then
+##		pdir="/${dir}"
+##		break;
+##	fi
+##done
+##
+##sdir=./git${pdir}
+##prev="${sdir}/${proj}.prev.tar.xz"
+### echo "pdir(${pdir}) sdir(${sdir}) prev(${prev}"
+### return 0
+##
+##echo "Running pre-hooks..."
+##find . -maxdepth 1 -type f -name "pmk*.sh" -exec bash {} \;
+### read -n1 -r -p "Press any key to continue..." key
 
-sdir=./git${pdir}
-prev="${sdir}/${proj}.prev.tar.xz"
-# echo "pdir(${pdir}) sdir(${sdir}) prev(${prev}"
-# return 0
-
-echo "Running pre-hooks..."
-find . -maxdepth 1 -type f -name "pmk*.sh" -exec bash {} \;
-# read -n1 -r -p "Press any key to continue..." key
 echo "Compressing and taring..."
 
 unset C
@@ -41,19 +42,21 @@ fi
 # C[${#C[*]}]="bzip2 -t ${tf}.bz2"
 
 C[${#C[*]}]="xz -z -e ${tf}"
-C[${#C[*]}]="rm -vf ${prev}"
-if [ ! -z "$WINDIR" ]
-then
-	C[${#C[*]}]="find ${sdir} -maxdepth 1 -type f -name \"${proj}_*.tar.xz\" -exec mv -v {} ${prev} \\;"
-else
-	C[${#C[*]}]="find -L ${sdir} -maxdepth 1 -type f -name \"${proj}_*.tar.xz\" -exec mv -v {} ${prev} \\;"
-fi
 
-C[${#C[*]}]="mv -v ${tf}.xz ${sdir}"
-if [ -e mkTar_no_prev ]; then
-	echo "Ignoring previous version"
-	C[${#C[*]}]="rm -vf ${prev}"
-fi
+##C[${#C[*]}]="rm -vf ${prev}"
+##if [ ! -z "$WINDIR" ]
+##then
+##	C[${#C[*]}]="find ${sdir} -maxdepth 1 -type f -name \"${proj}_*.tar.xz\" -exec mv -v {} ${prev} \\;"
+##else
+##	C[${#C[*]}]="find -L ${sdir} -maxdepth 1 -type f -name \"${proj}_*.tar.xz\" -exec mv -v {} ${prev} \\;"
+##fi
+##
+##C[${#C[*]}]="mv -v ${tf}.xz ${sdir}"
+##if [ -e mkTar_no_prev ]; then
+##	echo "Ignoring previous version"
+##	C[${#C[*]}]="rm -vf ${prev}"
+##fi
+
 C[${#C[*]}]="cd \"${proj}\""
 
 for i in $(seq 0 $((${#C[@]} - 1)))
