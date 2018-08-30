@@ -19,6 +19,7 @@ void cb_on_ice_complete(pj_ice_strans *ice_st,
 
 	if (status == PJ_SUCCESS) {
 		PJ_LOG(1,(THIS_FILE, "ICE %s successful", opname));
+		cam.state = IceDoneInit;
 	} else {
 		char errmsg[PJ_ERR_MSG_SIZE];
 		pj_strerror(status, errmsg, sizeof(errmsg));
@@ -26,6 +27,7 @@ void cb_on_ice_complete(pj_ice_strans *ice_st,
 		pj_ice_strans_destroy(ice_st);
 		// GLOBAL GARBAGE (must go away!)
 		cam.icest = NULL;
+		cam.state = Error;
 	}
 }
 
@@ -42,7 +44,9 @@ int main(int argc, char *argv[]) {
 	pj_status_t status;
 
 	cam.name = pj_str("cam");
-	cam.log_level = 3;
+	// cam.log_level = 3;
+	cam.log_level = 1;
+	cam.state = Start;
 	cam.opt.comp_cnt = 1;
 	cam.opt.max_host = -1;
 
@@ -67,8 +71,12 @@ int main(int argc, char *argv[]) {
 	status = app_init(&cam);
 	if(status != PJ_SUCCESS) { return 1; }
 
-	app_start(&cam, cb_on_ice_complete);
-	getchar();
+	printf("starting...\n");
+	app_start(&cam, 'o', cb_on_ice_complete);
+	while(cam.state != IceDoneInit) { pj_thread_sleep(100); }
+	app_show_ice(&cam);
+	//app_input_remote();
+	//app_start_nego()
 	app_stop(&cam);
 	err_exit(&cam, "Quitting..", PJ_SUCCESS);
 	return 0;

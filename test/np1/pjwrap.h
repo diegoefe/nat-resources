@@ -12,10 +12,15 @@
  */
 #define KA_INTERVAL 300
 
+enum State {
+   Error=1, Start, IceDoneInit, IceDoneCheck
+};
+
 typedef struct
 {
    pj_str_t  name;
    int log_level;
+   int state;
 
 	/* Command line options are stored here */
 	struct options {
@@ -75,7 +80,7 @@ void app_help_menu(app_t* _app);
 void app_print_menu(void);
 void app_usage(app_t* _app);
 
-void app_start(app_t* _app, f_on_ice_complete);
+void app_start(app_t* _app, char _role, f_on_ice_complete);
 void app_stop(app_t* _app);
 
 #endif

@@ -986,14 +986,10 @@ void app_usage(app_t* _app)
 	puts("");
 }
 
-void app_start(app_t* _app, f_on_ice_complete _on_ice_complete) {
+void app_start(app_t* _app, char _role, f_on_ice_complete _on_ice_complete) {
 	pj_log_set_level(_app->log_level);
 	app_create_instance(_app, _on_ice_complete);
-	app_init_session(_app, 'o');
-	getchar();
-	app_show_ice(_app);
-	//app_input_remote();
-	// app_start_nego();
+	app_init_session(_app, _role);
 }
 
 void app_stop(app_t* _app) {
