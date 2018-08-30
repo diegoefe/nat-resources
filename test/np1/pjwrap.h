@@ -15,6 +15,8 @@
 typedef struct
 {
    pj_str_t  name;
+   int log_level;
+
 	/* Command line options are stored here */
 	struct options {
 		unsigned    comp_cnt;

@@ -33,19 +33,20 @@ void cb_on_ice_complete(pj_ice_strans *ice_st,
  * And here's the main()
  */
 int main(int argc, char *argv[]) {
-    struct pj_getopt_option long_options[] = {
-	{ "help",		0, 0, 'h'},
-	{ "stun-srv",		1, 0, 's'},
-	{ "log-file",		1, 0, 'L'},
-    };
-    int c, opt_id;
-    pj_status_t status;
+	struct pj_getopt_option long_options[] = {
+		{ "help",		0, 0, 'h'},
+		{ "stun-srv",	1, 0, 's'},
+		{ "log-file",	1, 0, 'L'},
+	};
+	int c, opt_id;
+	pj_status_t status;
 
-	 cam.name = pj_str("cam");
-    cam.opt.comp_cnt = 1;
-    cam.opt.max_host = -1;
+	cam.name = pj_str("cam");
+	cam.log_level = 3;
+	cam.opt.comp_cnt = 1;
+	cam.opt.max_host = -1;
 
-    while((c=pj_getopt_long(argc,argv, "s:h:L", long_options, &opt_id))!=-1) {
+	while((c=pj_getopt_long(argc,argv, "s:h:L", long_options, &opt_id))!=-1) {
 		switch (c) {
 			case 'h':
 				app_usage(&cam);
@@ -61,17 +62,15 @@ int main(int argc, char *argv[]) {
 				argv[pj_optind]);
 				return 1;
 		}
-    }
+	}
 
-    status = app_init(&cam);
-    if (status != PJ_SUCCESS) { return 1; }
+	status = app_init(&cam);
+	if(status != PJ_SUCCESS) { return 1; }
 
-    // app_console();
-		app_start(&cam, cb_on_ice_complete);
-		getchar();
+	app_start(&cam, cb_on_ice_complete);
+	getchar();
 	app_stop(&cam);
-
-    err_exit(&cam, "Quitting..", PJ_SUCCESS);
-    return 0;
+	err_exit(&cam, "Quitting..", PJ_SUCCESS);
+	return 0;
 }
 

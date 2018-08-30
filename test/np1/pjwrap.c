@@ -14,22 +14,21 @@ void app_perror(const char *title, pj_status_t status)
 /* Utility: display error message and exit application (usually
  * because of fatal error.
  */
-void err_exit(app_t* _app, const char *title, pj_status_t status)
-{
-    if (status != PJ_SUCCESS) {
-	app_perror(title, status);
-    }
-    PJ_LOG(3,(THIS_FILE, "Shutting down.."));
+void err_exit(app_t* _app, const char *title, pj_status_t status) {
+   if (status != PJ_SUCCESS) {
+      app_perror(title, status);
+   }
+   PJ_LOG(3,(THIS_FILE, "Shutting down.."));
 
-    if (_app->icest)
-	pj_ice_strans_destroy(_app->icest);
+   if (_app->icest)
+      pj_ice_strans_destroy(_app->icest);
     
     pj_thread_sleep(500);
 
     _app->thread_quit_flag = PJ_TRUE;
     if (_app->thread) {
-	pj_thread_join(_app->thread);
-	pj_thread_destroy(_app->thread);
+       pj_thread_join(_app->thread);
+       pj_thread_destroy(_app->thread);
     }
 
     if (_app->ice_cfg.stun_cfg.ioqueue)
@@ -988,7 +987,7 @@ void app_usage(app_t* _app)
 }
 
 void app_start(app_t* _app, f_on_ice_complete _on_ice_complete) {
-	pj_log_set_level(1);
+	pj_log_set_level(_app->log_level);
 	app_create_instance(_app, _on_ice_complete);
 	app_init_session(_app, 'o');
 	getchar();
