@@ -40,8 +40,8 @@ target_link_libraries(tnice ${nices})
 
 configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 configure_file(run_pj.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
-configure_file(run_cam.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR}/np1/common.sh @ONLY)
 
-add_executable(cam cam.c)
-target_link_libraries(cam ${pjs} pthread m)
+add_subdirectory(np1)
+
