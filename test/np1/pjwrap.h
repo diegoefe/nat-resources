@@ -54,7 +54,10 @@ void cb_on_rx_data(pj_ice_strans *ice_st, unsigned comp_id, void *pkt, pj_size_t
 /**/void cb_on_ice_complete(pj_ice_strans *ice_st, pj_ice_strans_op op, pj_status_t status);
 void log_func(app_t* _app, int level, const char *data, int len);
 pj_status_t app_init(app_t* _app);
-void app_create_instance(app_t* _app);
+typedef void (*f_on_ice_complete)(pj_ice_strans *ice_st, 
+			       pj_ice_strans_op op,
+			       pj_status_t status);
+void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete);
 void reset_rem_info(app_t* _app);
 void app_destroy_instance(app_t* _app);
 void app_init_session(app_t* _app, unsigned rolechar);
@@ -69,7 +72,7 @@ void app_help_menu(app_t* _app);
 void app_print_menu(void);
 void app_usage();
 
-void app_start(app_t* _app);
+void app_start(app_t* _app, f_on_ice_complete);
 void app_stop(app_t* _app);
 
 #endif
