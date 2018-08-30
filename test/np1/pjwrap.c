@@ -305,32 +305,32 @@ pj_status_t app_init(app_t* _app)
  */
 void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete)
 {
-    pj_ice_strans_cb icecb;
-    pj_status_t status;
+   pj_ice_strans_cb icecb;
+   pj_status_t status;
 
-    if (_app->icest != NULL) {
-	puts("ICE instance already created, destroy it first");
-	return;
-    }
+   if (_app->icest != NULL) {
+      puts("ICE instance already created, destroy it first");
+      return;
+   }
 
-    /* init the callback */
-    pj_bzero(&icecb, sizeof(icecb));
-    icecb.on_rx_data = cb_on_rx_data;
-    // icecb.on_ice_complete = cb_on_ice_complete;
-    icecb.on_ice_complete = _on_ice_complete;
+   /* init the callback */
+   pj_bzero(&icecb, sizeof(icecb));
+   icecb.on_rx_data = cb_on_rx_data;
+   // icecb.on_ice_complete = cb_on_ice_complete;
+   icecb.on_ice_complete = _on_ice_complete;
 
-    /* create the instance */
-    status = pj_ice_strans_create(_app->name.ptr,		    /* object name  */
+   /* create the instance */
+   status = pj_ice_strans_create(_app->name.ptr,		    /* object name  */
 				&_app->ice_cfg,	    /* settings	    */
 				_app->opt.comp_cnt,	    /* comp_cnt	    */
 				NULL,			    /* user data    */
 				&icecb,			    /* callback	    */
 				&_app->icest)		    /* instance ptr */
 				;
-    if (status != PJ_SUCCESS)
-	app_perror("error creating ice", status);
-    else
-	PJ_LOG(3,(THIS_FILE, "ICE instance successfully created"));
+   if (status != PJ_SUCCESS)
+      app_perror("error creating ice", status);
+   else
+      PJ_LOG(3,(THIS_FILE, "ICE instance successfully created"));
 }
 
 /* Utility to nullify parsed remote info */
@@ -364,31 +364,31 @@ void app_destroy_instance(app_t* _app)
  */
 void app_init_session(app_t* _app, unsigned rolechar)
 {
-    pj_ice_sess_role role = (pj_tolower((pj_uint8_t)rolechar)=='o' ? 
-				PJ_ICE_SESS_ROLE_CONTROLLING : 
-				PJ_ICE_SESS_ROLE_CONTROLLED);
-    pj_status_t status;
+   pj_ice_sess_role role = (pj_tolower((pj_uint8_t)rolechar)=='o' ? 
+      PJ_ICE_SESS_ROLE_CONTROLLING : 
+      PJ_ICE_SESS_ROLE_CONTROLLED);
+   pj_status_t status;
 
-	PJ_LOG(3,(THIS_FILE, "SESSION 1 ------------------------------------------------"));
-    if (_app->icest == NULL) {
-	PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
-	return;
-    }
+   PJ_LOG(3,(THIS_FILE, "SESSION 1 ------------------------------------------------"));
+   if (_app->icest == NULL) {
+      PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
+      return;
+   }
 
-    if (pj_ice_strans_has_sess(_app->icest)) {
-	PJ_LOG(1,(THIS_FILE, "Error: Session already created"));
-	return;
-    }
+   if (pj_ice_strans_has_sess(_app->icest)) {
+      PJ_LOG(1,(THIS_FILE, "Error: Session already created"));
+      return;
+   }
 	PJ_LOG(3,(THIS_FILE, "SESSION 2 ------------------------------------------------"));
 
-    status = pj_ice_strans_init_ice(_app->icest, role, NULL, NULL);
-    if (status != PJ_SUCCESS)
-	app_perror("error creating session", status);
-    else
-	PJ_LOG(3,(THIS_FILE, "ICE session created"));
+   status = pj_ice_strans_init_ice(_app->icest, role, NULL, NULL);
+   if (status != PJ_SUCCESS)
+      app_perror("error creating session", status);
+   else
+      PJ_LOG(3,(THIS_FILE, "ICE session created"));
 
-	PJ_LOG(3,(THIS_FILE, "SESSION 3 ------------------------------------------------"));
-    reset_rem_info(_app);
+   PJ_LOG(3,(THIS_FILE, "SESSION 3 ------------------------------------------------"));
+   reset_rem_info(_app);
 	PJ_LOG(3,(THIS_FILE, "SESSION 4 ------------------------------------------------"));
 }
 
@@ -396,27 +396,26 @@ void app_init_session(app_t* _app, unsigned rolechar)
 /*
  * Stop/destroy ICE session, invoked from the menu.
  */
-void app_stop_session(app_t* _app)
-{
-    pj_status_t status;
+void app_stop_session(app_t* _app) {
+   pj_status_t status;
 
-    if (_app->icest == NULL) {
-	PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
-	return;
-    }
+   if (_app->icest == NULL) {
+      PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
+      return;
+   }
 
-    if (!pj_ice_strans_has_sess(_app->icest)) {
-	PJ_LOG(1,(THIS_FILE, "Error: No ICE session, initialize first"));
-	return;
-    }
+   if (!pj_ice_strans_has_sess(_app->icest)) {
+      PJ_LOG(1,(THIS_FILE, "Error: No ICE session, initialize first"));
+      return;
+   }
 
-    status = pj_ice_strans_stop_ice(_app->icest);
-    if (status != PJ_SUCCESS)
-	app_perror("error stopping session", status);
-    else
-	PJ_LOG(3,(THIS_FILE, "ICE session stopped"));
+   status = pj_ice_strans_stop_ice(_app->icest);
+   if (status != PJ_SUCCESS)
+      app_perror("error stopping session", status);
+   else
+      PJ_LOG(3,(THIS_FILE, "ICE session stopped"));
 
-    reset_rem_info(_app);
+   reset_rem_info(_app);
 }
 
 #define PRINT(...)	    \
@@ -428,9 +427,7 @@ void app_stop_session(app_t* _app)
 
 
 /* Utility to create a=candidate SDP attribute */
-int print_cand(char buffer[], unsigned maxlen,
-		      const pj_ice_sess_cand *cand)
-{
+int print_cand(char buffer[], unsigned maxlen, const pj_ice_sess_cand *cand) {
     char ipaddr[PJ_INET6_ADDRSTRLEN];
     char *p = buffer;
     int printed;
@@ -541,70 +538,66 @@ return (int)(p - buffer);
 * Show information contained in the ICE stream transport. This is
 * invoked from the menu.
 */
-void app_show_ice(app_t* _app)
-{
-static char buffer[1000];
-int len;
+void app_show_ice(app_t* _app) {
+   static char buffer[1000];
+   int len;
+   if (_app->icest == NULL) {
+      PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
+      return;
+   }
 
-if (_app->icest == NULL) {
-PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
-return;
-}
+	puts("General info");
+	puts("---------------");
+	printf("Component count    : %d\n", _app->opt.comp_cnt);
+	printf("Status             : ");
 
-puts("General info");
-puts("---------------");
-printf("Component count    : %d\n", _app->opt.comp_cnt);
-printf("Status             : ");
-if (pj_ice_strans_sess_is_complete(_app->icest))
-puts("negotiation complete");
-else if (pj_ice_strans_sess_is_running(_app->icest))
-puts("negotiation is in progress");
-else if (pj_ice_strans_has_sess(_app->icest))
-puts("session ready");
-else
-puts("session not created");
-
-if (!pj_ice_strans_has_sess(_app->icest)) {
-puts("Create the session first to see more info");
-return;
-}
-
-printf("Negotiated comp_cnt: %d\n", 
-pj_ice_strans_get_running_comp_cnt(_app->icest));
-printf("Role               : %s\n",
-pj_ice_strans_get_role(_app->icest)==PJ_ICE_SESS_ROLE_CONTROLLED ?
-"controlled" : "controlling");
-
-len = encode_session(_app, buffer, sizeof(buffer));
-if (len < 0)
-err_exit(_app, "not enough buffer to show ICE status", -len);
-
-puts("");
-printf("Local SDP (paste this to remote host):\n"
-"--------------------------------------\n"
-"%s\n", buffer);
-
-
-puts("");
-puts("Remote info:\n"
-"----------------------");
-if (_app->rem.cand_cnt==0) {
-puts("No remote info yet");
-} else {
-unsigned i;
-
-printf("Remote ufrag       : %s\n", _app->rem.ufrag);
-printf("Remote password    : %s\n", _app->rem.pwd);
-printf("Remote cand. cnt.  : %d\n", _app->rem.cand_cnt);
-
-for (i=0; i<_app->rem.cand_cnt; ++i) {
-len = print_cand(buffer, sizeof(buffer), &_app->rem.cand[i]);
-if (len < 0)
-err_exit(_app, "not enough buffer to show ICE status", -len);
-
-printf("  %s", buffer);
-}
-}
+   if (pj_ice_strans_sess_is_complete(_app->icest))
+	   puts("negotiation complete");
+	else if (pj_ice_strans_sess_is_running(_app->icest))
+	   puts("negotiation is in progress");
+	else if (pj_ice_strans_has_sess(_app->icest))
+   	puts("session ready");
+	else
+   	puts("session not created");
+	
+	if (!pj_ice_strans_has_sess(_app->icest)) {
+		puts("Create the session first to see more info");
+		return;
+	}
+	
+	printf("Negotiated comp_cnt: %d\n", 
+	pj_ice_strans_get_running_comp_cnt(_app->icest));
+	printf("Role               : %s\n",
+	pj_ice_strans_get_role(_app->icest)==PJ_ICE_SESS_ROLE_CONTROLLED ?  "controlled" : "controlling");
+	
+	len = encode_session(_app, buffer, sizeof(buffer));
+	if (len < 0)
+   	err_exit(_app, "not enough buffer to show ICE status", -len);
+	puts("");
+	printf("Local SDP (paste this to remote host):\n"
+   	"--------------------------------------\n"
+   	"%s\n", buffer);
+	
+	
+	puts("");
+	puts("Remote info:\n"
+	"----------------------");
+	if (_app->rem.cand_cnt==0) {
+   	puts("No remote info yet");
+	} else {
+   	unsigned i;
+	
+   	printf("Remote ufrag       : %s\n", _app->rem.ufrag);
+   	printf("Remote password    : %s\n", _app->rem.pwd);
+   	printf("Remote cand. cnt.  : %d\n", _app->rem.cand_cnt);
+	
+   	for (i=0; i<_app->rem.cand_cnt; ++i) {
+         len = print_cand(buffer, sizeof(buffer), &_app->rem.cand[i]);
+         if (len < 0)
+            err_exit(_app, "not enough buffer to show ICE status", -len);
+         printf("  %s", buffer);
+      }
+   }
 }
 
 
@@ -612,260 +605,258 @@ printf("  %s", buffer);
 * Input and parse SDP from the remote (containing remote's ICE information) 
 * and save it to global variables.
 */
-void app_input_remote(app_t* _app)
-{
-char linebuf[80];
-unsigned media_cnt = 0;
-unsigned comp0_port = 0;
-char     comp0_addr[80];
-pj_bool_t done = PJ_FALSE;
-
-puts("Paste SDP from remote host, end with empty line");
-
-reset_rem_info(_app);
-
-comp0_addr[0] = '\0';
-
-while (!done) {
-pj_size_t len;
-char *line;
-
-printf(">");
-if (stdout) fflush(stdout);
-
-if (fgets(linebuf, sizeof(linebuf), stdin)==NULL)
-break;
-
-len = strlen(linebuf);
-while (len && (linebuf[len-1] == '\r' || linebuf[len-1] == '\n'))
-linebuf[--len] = '\0';
-
-line = linebuf;
-while (len && pj_isspace(*line))
-++line, --len;
-
-if (len==0)
-break;
-
-/* Ignore subsequent media descriptors */
-if (media_cnt > 1)
-continue;
-
-switch (line[0]) {
-case 'm':
-{
-int cnt;
-char media[32], portstr[32];
-
-++media_cnt;
-if (media_cnt > 1) {
-  puts("Media line ignored");
-  break;
-}
-
-cnt = sscanf(line+2, "%s %s RTP/", media, portstr);
-if (cnt != 2) {
-  PJ_LOG(1,(THIS_FILE, "Error parsing media line"));
-  goto on_error;
-}
-
-comp0_port = atoi(portstr);
-
-}
-break;
-case 'c':
-{
-int cnt;
-char c[32], net[32], ip[80];
-
-cnt = sscanf(line+2, "%s %s %s", c, net, ip);
-if (cnt != 3) {
-  PJ_LOG(1,(THIS_FILE, "Error parsing connection line"));
-  goto on_error;
-}
-
-strcpy(comp0_addr, ip);
-}
-break;
-case 'a':
-{
-char *attr = strtok(line+2, ": \t\r\n");
-if (strcmp(attr, "ice-ufrag")==0) {
-  strcpy(_app->rem.ufrag, attr+strlen(attr)+1);
-} else if (strcmp(attr, "ice-pwd")==0) {
-  strcpy(_app->rem.pwd, attr+strlen(attr)+1);
-} else if (strcmp(attr, "rtcp")==0) {
-  char *val = attr+strlen(attr)+1;
-  int af, cnt;
-  int port;
-  char net[32], ip[64];
-  pj_str_t tmp_addr;
-  pj_status_t status;
-
-  cnt = sscanf(val, "%d IN %s %s", &port, net, ip);
-  if (cnt != 3) {
- PJ_LOG(1,(THIS_FILE, "Error parsing rtcp attribute"));
- goto on_error;
-  }
-
-  if (strchr(ip, ':'))
- af = pj_AF_INET6();
-  else
- af = pj_AF_INET();
-
-  pj_sockaddr_init(af, &_app->rem.def_addr[1], NULL, 0);
-  tmp_addr = pj_str(ip);
-  status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[1],
-					 &tmp_addr);
-  if (status != PJ_SUCCESS) {
- PJ_LOG(1,(THIS_FILE, "Invalid IP address"));
- goto on_error;
-  }
-  pj_sockaddr_set_port(&_app->rem.def_addr[1], (pj_uint16_t)port);
-
-} else if (strcmp(attr, "candidate")==0) {
-  char *sdpcand = attr+strlen(attr)+1;
-  int af, cnt;
-  char foundation[32], transport[12], ipaddr[80], type[32];
-  pj_str_t tmpaddr;
-  int comp_id, prio, port;
-  pj_ice_sess_cand *cand;
-  pj_status_t status;
-
-  cnt = sscanf(sdpcand, "%s %d %s %d %s %d typ %s",
-	  foundation,
-	  &comp_id,
-	  transport,
-	  &prio,
-	  ipaddr,
-	  &port,
-	  type);
-  if (cnt != 7) {
- PJ_LOG(1, (THIS_FILE, "error: Invalid ICE candidate line"));
- goto on_error;
-  }
-
-  cand = &_app->rem.cand[_app->rem.cand_cnt];
-  pj_bzero(cand, sizeof(*cand));
-  
-  if (strcmp(type, "host")==0)
- cand->type = PJ_ICE_CAND_TYPE_HOST;
-  else if (strcmp(type, "srflx")==0)
- cand->type = PJ_ICE_CAND_TYPE_SRFLX;
-  else if (strcmp(type, "relay")==0)
- cand->type = PJ_ICE_CAND_TYPE_RELAYED;
-  else {
- PJ_LOG(1, (THIS_FILE, "Error: invalid candidate type '%s'", 
-		 type));
- goto on_error;
-  }
-
-  cand->comp_id = (pj_uint8_t)comp_id;
-  pj_strdup2(_app->pool, &cand->foundation, foundation);
-  cand->prio = prio;
-  
-  if (strchr(ipaddr, ':'))
- af = pj_AF_INET6();
-  else
- af = pj_AF_INET();
-
-  tmpaddr = pj_str(ipaddr);
-  pj_sockaddr_init(af, &cand->addr, NULL, 0);
-  status = pj_sockaddr_set_str_addr(af, &cand->addr, &tmpaddr);
-  if (status != PJ_SUCCESS) {
- PJ_LOG(1,(THIS_FILE, "Error: invalid IP address '%s'",
-		ipaddr));
- goto on_error;
-  }
-
-  pj_sockaddr_set_port(&cand->addr, (pj_uint16_t)port);
-
-  ++_app->rem.cand_cnt;
-
-  if (cand->comp_id > _app->rem.comp_cnt)
- _app->rem.comp_cnt = cand->comp_id;
-}
-}
-break;
-}
-}
-
-if (_app->rem.cand_cnt==0 ||
-_app->rem.ufrag[0]==0 ||
-_app->rem.pwd[0]==0 ||
-_app->rem.comp_cnt == 0)
-{
-PJ_LOG(1, (THIS_FILE, "Error: not enough info"));
-goto on_error;
-}
-
-if (comp0_port==0 || comp0_addr[0]=='\0') {
-PJ_LOG(1, (THIS_FILE, "Error: default address for component 0 not found"));
-goto on_error;
-} else {
-int af;
-pj_str_t tmp_addr;
-pj_status_t status;
-
-if (strchr(comp0_addr, ':'))
-af = pj_AF_INET6();
-else
-af = pj_AF_INET();
-
-pj_sockaddr_init(af, &_app->rem.def_addr[0], NULL, 0);
-tmp_addr = pj_str(comp0_addr);
-status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[0],
-			&tmp_addr);
-if (status != PJ_SUCCESS) {
-PJ_LOG(1,(THIS_FILE, "Invalid IP address in c= line"));
-goto on_error;
-}
-pj_sockaddr_set_port(&_app->rem.def_addr[0], (pj_uint16_t)comp0_port);
-}
-
-PJ_LOG(3, (THIS_FILE, "Done, %d remote candidate(s) added", 
-  _app->rem.cand_cnt));
-return;
-
-on_error:
-reset_rem_info(_app);
+void app_input_remote(app_t* _app) {
+	char linebuf[80];
+	unsigned media_cnt = 0;
+	unsigned comp0_port = 0;
+	char     comp0_addr[80];
+	pj_bool_t done = PJ_FALSE;
+	
+	puts("Paste SDP from remote host, end with empty line");
+	
+	reset_rem_info(_app);
+	
+	comp0_addr[0] = '\0';
+	
+	while (!done) {
+	pj_size_t len;
+	char *line;
+	
+	printf(">");
+	if (stdout) fflush(stdout);
+	
+	if (fgets(linebuf, sizeof(linebuf), stdin)==NULL)
+	break;
+	
+	len = strlen(linebuf);
+	while (len && (linebuf[len-1] == '\r' || linebuf[len-1] == '\n'))
+	linebuf[--len] = '\0';
+	
+	line = linebuf;
+	while (len && pj_isspace(*line))
+	++line, --len;
+	
+	if (len==0)
+	break;
+	
+	/* Ignore subsequent media descriptors */
+	if (media_cnt > 1)
+	continue;
+	
+	switch (line[0]) {
+	case 'm':
+	{
+	int cnt;
+	char media[32], portstr[32];
+	
+	++media_cnt;
+	if (media_cnt > 1) {
+	  puts("Media line ignored");
+	  break;
+	}
+	
+	cnt = sscanf(line+2, "%s %s RTP/", media, portstr);
+	if (cnt != 2) {
+	  PJ_LOG(1,(THIS_FILE, "Error parsing media line"));
+	  goto on_error;
+	}
+	
+	comp0_port = atoi(portstr);
+	
+	}
+	break;
+	case 'c':
+	{
+	int cnt;
+	char c[32], net[32], ip[80];
+	
+	cnt = sscanf(line+2, "%s %s %s", c, net, ip);
+	if (cnt != 3) {
+	  PJ_LOG(1,(THIS_FILE, "Error parsing connection line"));
+	  goto on_error;
+	}
+	
+	strcpy(comp0_addr, ip);
+	}
+	break;
+	case 'a':
+	{
+	char *attr = strtok(line+2, ": \t\r\n");
+	if (strcmp(attr, "ice-ufrag")==0) {
+	  strcpy(_app->rem.ufrag, attr+strlen(attr)+1);
+	} else if (strcmp(attr, "ice-pwd")==0) {
+	  strcpy(_app->rem.pwd, attr+strlen(attr)+1);
+	} else if (strcmp(attr, "rtcp")==0) {
+	  char *val = attr+strlen(attr)+1;
+	  int af, cnt;
+	  int port;
+	  char net[32], ip[64];
+	  pj_str_t tmp_addr;
+	  pj_status_t status;
+	
+	  cnt = sscanf(val, "%d IN %s %s", &port, net, ip);
+	  if (cnt != 3) {
+	 PJ_LOG(1,(THIS_FILE, "Error parsing rtcp attribute"));
+	 goto on_error;
+	  }
+	
+	  if (strchr(ip, ':'))
+	 af = pj_AF_INET6();
+	  else
+	 af = pj_AF_INET();
+	
+	  pj_sockaddr_init(af, &_app->rem.def_addr[1], NULL, 0);
+	  tmp_addr = pj_str(ip);
+	  status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[1],
+						 &tmp_addr);
+	  if (status != PJ_SUCCESS) {
+	 PJ_LOG(1,(THIS_FILE, "Invalid IP address"));
+	 goto on_error;
+	  }
+	  pj_sockaddr_set_port(&_app->rem.def_addr[1], (pj_uint16_t)port);
+	
+	} else if (strcmp(attr, "candidate")==0) {
+	  char *sdpcand = attr+strlen(attr)+1;
+	  int af, cnt;
+	  char foundation[32], transport[12], ipaddr[80], type[32];
+	  pj_str_t tmpaddr;
+	  int comp_id, prio, port;
+	  pj_ice_sess_cand *cand;
+	  pj_status_t status;
+	
+	  cnt = sscanf(sdpcand, "%s %d %s %d %s %d typ %s",
+		  foundation,
+		  &comp_id,
+		  transport,
+		  &prio,
+		  ipaddr,
+		  &port,
+		  type);
+	  if (cnt != 7) {
+	 PJ_LOG(1, (THIS_FILE, "error: Invalid ICE candidate line"));
+	 goto on_error;
+	  }
+	
+	  cand = &_app->rem.cand[_app->rem.cand_cnt];
+	  pj_bzero(cand, sizeof(*cand));
+	  
+	  if (strcmp(type, "host")==0)
+	 cand->type = PJ_ICE_CAND_TYPE_HOST;
+	  else if (strcmp(type, "srflx")==0)
+	 cand->type = PJ_ICE_CAND_TYPE_SRFLX;
+	  else if (strcmp(type, "relay")==0)
+	 cand->type = PJ_ICE_CAND_TYPE_RELAYED;
+	  else {
+	 PJ_LOG(1, (THIS_FILE, "Error: invalid candidate type '%s'", 
+			 type));
+	 goto on_error;
+	  }
+	
+	  cand->comp_id = (pj_uint8_t)comp_id;
+	  pj_strdup2(_app->pool, &cand->foundation, foundation);
+	  cand->prio = prio;
+	  
+	  if (strchr(ipaddr, ':'))
+	 af = pj_AF_INET6();
+	  else
+	 af = pj_AF_INET();
+	
+	  tmpaddr = pj_str(ipaddr);
+	  pj_sockaddr_init(af, &cand->addr, NULL, 0);
+	  status = pj_sockaddr_set_str_addr(af, &cand->addr, &tmpaddr);
+	  if (status != PJ_SUCCESS) {
+	 PJ_LOG(1,(THIS_FILE, "Error: invalid IP address '%s'",
+			ipaddr));
+	 goto on_error;
+	  }
+	
+	  pj_sockaddr_set_port(&cand->addr, (pj_uint16_t)port);
+	
+	  ++_app->rem.cand_cnt;
+	
+	  if (cand->comp_id > _app->rem.comp_cnt)
+	 _app->rem.comp_cnt = cand->comp_id;
+	}
+	}
+	break;
+	}
+	}
+	
+	if (_app->rem.cand_cnt==0 ||
+	_app->rem.ufrag[0]==0 ||
+	_app->rem.pwd[0]==0 ||
+	_app->rem.comp_cnt == 0)
+	{
+	PJ_LOG(1, (THIS_FILE, "Error: not enough info"));
+	goto on_error;
+	}
+	
+	if (comp0_port==0 || comp0_addr[0]=='\0') {
+	PJ_LOG(1, (THIS_FILE, "Error: default address for component 0 not found"));
+	goto on_error;
+	} else {
+	int af;
+	pj_str_t tmp_addr;
+	pj_status_t status;
+	
+	if (strchr(comp0_addr, ':'))
+	af = pj_AF_INET6();
+	else
+	af = pj_AF_INET();
+	
+	pj_sockaddr_init(af, &_app->rem.def_addr[0], NULL, 0);
+	tmp_addr = pj_str(comp0_addr);
+	status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[0],
+				&tmp_addr);
+	if (status != PJ_SUCCESS) {
+	PJ_LOG(1,(THIS_FILE, "Invalid IP address in c= line"));
+	goto on_error;
+	}
+	pj_sockaddr_set_port(&_app->rem.def_addr[0], (pj_uint16_t)comp0_port);
+	}
+	
+	PJ_LOG(3, (THIS_FILE, "Done, %d remote candidate(s) added", 
+	  _app->rem.cand_cnt));
+	return;
+	
+	on_error:
+	reset_rem_info(_app);
 }
 
 
 /*
 * Start ICE negotiation! This function is invoked from the menu.
 */
-void app_start_nego(app_t* _app)
-{
-pj_str_t rufrag, rpwd;
-pj_status_t status;
+void app_start_nego(app_t* _app) {
+	pj_str_t rufrag, rpwd;
+	pj_status_t status;
+	
+	if (_app->icest == NULL) {
+   	PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
+   	return;
+	}
+	
+	if (!pj_ice_strans_has_sess(_app->icest)) {
+   	PJ_LOG(1,(THIS_FILE, "Error: No ICE session, initialize first"));
+   	return;
+	}
+	
+	if (_app->rem.cand_cnt == 0) {
+   	PJ_LOG(1,(THIS_FILE, "Error: No remote info, input remote info first"));
+   	return;
+   }
 
-if (_app->icest == NULL) {
-PJ_LOG(1,(THIS_FILE, "Error: No ICE instance, create it first"));
-return;
-}
+   PJ_LOG(3,(THIS_FILE, "Starting ICE negotiation.."));
 
-if (!pj_ice_strans_has_sess(_app->icest)) {
-PJ_LOG(1,(THIS_FILE, "Error: No ICE session, initialize first"));
-return;
-}
-
-if (_app->rem.cand_cnt == 0) {
-PJ_LOG(1,(THIS_FILE, "Error: No remote info, input remote info first"));
-return;
-}
-
-PJ_LOG(3,(THIS_FILE, "Starting ICE negotiation.."));
-
-status = pj_ice_strans_start_ice(_app->icest, 
-			pj_cstr(&rufrag, _app->rem.ufrag),
-			pj_cstr(&rpwd, _app->rem.pwd),
-			_app->rem.cand_cnt,
-			_app->rem.cand);
-if (status != PJ_SUCCESS)
-app_perror("Error starting ICE", status);
-else
-PJ_LOG(3,(THIS_FILE, "ICE negotiation started"));
+   status = pj_ice_strans_start_ice(_app->icest,
+                                    pj_cstr(&rufrag, _app->rem.ufrag),
+                                    pj_cstr(&rpwd, _app->rem.pwd),
+                                    _app->rem.cand_cnt,
+                                    _app->rem.cand);
+   if (status != PJ_SUCCESS)
+      app_perror("Error starting ICE", status);
+   else
+      PJ_LOG(3,(THIS_FILE, "ICE negotiation started"));
 }
 
 
@@ -898,10 +889,12 @@ void app_send_data(app_t* _app, unsigned comp_id, const char *data)
 		return;
 	}
 	
-	status = pj_ice_strans_sendto(_app->icest, comp_id, data, strlen(data),
-			&_app->rem.def_addr[comp_id-1],
-			pj_sockaddr_get_len(&_app->rem.def_addr[comp_id-1]));
-	if (status != PJ_SUCCESS)
+	status = pj_ice_strans_sendto(_app->icest,
+                                 comp_id, data,
+                                 strlen(data),
+                                 &_app->rem.def_addr[comp_id-1],
+                                 pj_sockaddr_get_len(&_app->rem.def_addr[comp_id-1]));
+	if(status != PJ_SUCCESS)
 		app_perror("Error sending data", status);
 	else
 		PJ_LOG(3,(THIS_FILE, "Data sent"));
