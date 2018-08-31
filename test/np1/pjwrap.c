@@ -569,6 +569,20 @@ void app_show_ice(app_t* _app) {
       err_exit(_app, "not enough buffer to show ICE status", -len);
    }
 	puts("");
+   if(_app->opt.write_sdp == PJ_TRUE) {
+      pj_str_t name;
+      pj_strcpy(&name, &_app->name);
+      pj_strcat2(&name, ".dsp");
+      FILE* sdp = fopen(pj_strbuf(&name), "w");
+      if(NULL == sdp) {
+         err_exit(_app, "couldn't not write SDP file", -1);
+      }
+      printf("Writing SDP info to '%s'...", pj_strbuf(&name));
+      fwrite(buffer, len, 1, sdp);
+      printf(" done.\n");
+      fclose(sdp);
+
+   }
 	printf("Local SDP (paste this to remote host):\n"
           "--------------------------------------\n"
           "%s\n", buffer);
@@ -882,6 +896,7 @@ void app_usage(app_t* _app)
 	puts("General options:");
 	puts(" --log-file, -L FILE       Save output to log FILE");
 	puts(" --remote-sdp, -R FILE     Load remote candidates from SDP FILE");
+	puts(" --write-sdp, -W           Load remote candidates from SDP FILE");
 	puts(" --help, -h                Display this screen.");
 	puts("");
 	puts("STUN related options:");

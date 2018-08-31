@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
 		{ "stun-srv",	1, 0, 's'},
 		{ "log-file",	1, 0, 'L'},
 		{ "remote-sdp",	1, 0, 'R'},
+		{ "write-sdp",	0, 0, 'W'},
 	};
 	int c, opt_id;
 	pj_status_t status;
@@ -82,8 +83,9 @@ int main(int argc, char *argv[]) {
 	cam.opt.max_host = -1;
    cam.opt.rem_sdp.ptr = 0;
    cam.opt.rem_sdp.slen = 0;
+   cam.opt.write_sdp = PJ_FALSE;
 
-	while((c=pj_getopt_long(argc,argv, "s:h:L:R", long_options, &opt_id))!=-1) {
+	while((c=pj_getopt_long(argc,argv, "s:h:L:R:W", long_options, &opt_id))!=-1) {
 		switch (c) {
 			case 'h':
 				app_usage(&cam);
@@ -96,6 +98,9 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'R':
 				cam.opt.rem_sdp= pj_str(pj_optarg);
+				break;
+			case 'W':
+            cam.opt.write_sdp = PJ_TRUE;
 				break;
 			default:
 				printf("Argument \"%s\" is not valid. Use -h to see help\n",
@@ -116,8 +121,10 @@ int main(int argc, char *argv[]) {
 	app_start(&cam, 'o');
 	while(cam.state != IceDoneInit) { pj_thread_sleep(100); }
 	app_show_ice(&cam);
-	//app_input_remote();
-	//app_start_nego()
+   if(PJ_FALSE == cam.opt.write_sdp) {
+	  // app_input_remote();
+	  // app_start_nego()
+   }
 	app_stop(&cam);
 	err_exit(&cam, "Quitting..", PJ_SUCCESS);
 	return 0;

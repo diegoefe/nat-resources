@@ -31,6 +31,7 @@ typedef struct
 		pj_str_t    stun_srv;
 		const char *log_file;
 		pj_str_t rem_sdp;
+      pj_bool_t write_sdp;
 	} opt;
 
 	/* Our global variables */
