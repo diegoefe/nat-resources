@@ -14,6 +14,7 @@ void app_stop_session(app_t* _app);
 int print_cand(char buffer[], unsigned maxlen, const pj_ice_sess_cand *cand);
 int encode_session(app_t* _app, char buffer[], unsigned maxlen);
 void app_send_data(app_t* _app, unsigned comp_id, const char *data);
+void app_input_remote(app_t* _app, FILE* _fd);
 
 #define THIS_FILE   "pjwrap.c"
 
@@ -149,59 +150,6 @@ int app_worker_thread(void *arg)
 
     return 0;
 }
-
-#if 0
-/*
- * This is the callback that is registered to the ICE stream transport to
- * receive notification about incoming data. By "data" it means application
- * data such as RTP/RTCP, and not packets that belong to ICE signaling (such
- * as STUN connectivity checks or TURN signaling).
- */
-void cb_on_rx_data(pj_ice_strans *ice_st,
-			  unsigned comp_id, 
-			  void *pkt, pj_size_t size,
-			  const pj_sockaddr_t *src_addr,
-			  unsigned src_addr_len)
-{
-    char ipstr[PJ_INET6_ADDRSTRLEN+10];
-
-    PJ_UNUSED_ARG(ice_st);
-    PJ_UNUSED_ARG(src_addr_len);
-    PJ_UNUSED_ARG(pkt);
-
-    // Don't do this! It will ruin the packet buffer in case TCP is used!
-    //((char*)pkt)[size] = '\0';
-
-    PJ_LOG(3,(THIS_FILE, "Component %d: received %d bytes data from %s: \"%.*s\"",
-	      comp_id, size,
-	      pj_sockaddr_print(src_addr, ipstr, sizeof(ipstr), 3),
-	      (unsigned)size,
-	      (char*)pkt));
-}
-
-/*
- * This is the callback that is registered to the ICE stream transport to
- * receive notification about ICE state progression.
- */
-void cb_on_ice_complete(pj_ice_strans *ice_st, 
-			       pj_ice_strans_op op,
-			       pj_status_t status)
-{
-    const char *opname = (op==PJ_ICE_STRANS_OP_INIT? "initialization" :
-	    (op==PJ_ICE_STRANS_OP_NEGOTIATION ? "negotiation" : "unknown_op"));
-
-	if (status == PJ_SUCCESS) {
-		PJ_LOG(3,(THIS_FILE, "ICE %s successful", opname));
-	} else {
-		char errmsg[PJ_ERR_MSG_SIZE];
-		pj_strerror(status, errmsg, sizeof(errmsg));
-		PJ_LOG(1,(THIS_FILE, "ICE %s failed: %s", opname, errmsg));
-		pj_ice_strans_destroy(ice_st);
-		// OJO! correr antes de resetear
-		// _app->icest = NULL;
-	}
-}
-#endif
 
 // GLOBAL GARBAGE (must go away!)
 static FILE* log_fh = NULL;
@@ -575,7 +523,7 @@ void app_show_ice(app_t* _app) {
       pj_strcat2(&name, ".dsp");
       FILE* sdp = fopen(pj_strbuf(&name), "w");
       if(NULL == sdp) {
-         err_exit(_app, "couldn't not write SDP file", -1);
+         err_exit(_app, "Couldn't not write SDP file", -1);
       }
       printf("Writing SDP info to '%s' and exit...", pj_strbuf(&name));
       fwrite(buffer, len, 1, sdp);
@@ -583,10 +531,17 @@ void app_show_ice(app_t* _app) {
       fclose(sdp);
 
    } else {
-      printf("Local SDP (paste this to remote host):\n"
+      const char* rsdp = pj_strbuf(&_app->opt.rem_sdp);
+      FILE* rem_sdp = fopen(rsdp, "r");
+      if(rem_sdp) {
+         printf("Loading remote SDP from '%s'...", rsdp);
+         app_input_remote(_app, rem_sdp);
+         printf(" done.·\n");
+         fclose(rem_sdp);
+      }
+      printf("Local info:\n"
              "--------------------------------------\n"
              "%s\n", buffer);
-      
       puts("");
       puts("Remote info:\n"
       "----------------------");
@@ -614,14 +569,14 @@ void app_show_ice(app_t* _app) {
 * Input and parse SDP from the remote (containing remote's ICE information) 
 * and save it to global variables.
 */
-void app_input_remote(app_t* _app) {
+void app_input_remote(app_t* _app, FILE* _fd) {
 	char linebuf[80];
 	unsigned media_cnt = 0;
 	unsigned comp0_port = 0;
 	char     comp0_addr[80];
 	pj_bool_t done = PJ_FALSE;
 	
-	puts("Paste SDP from remote host, end with empty line");
+	// puts("Paste SDP from remote host, end with empty line");
 	
 	reset_rem_info(_app);
 	
@@ -631,10 +586,11 @@ void app_input_remote(app_t* _app) {
       pj_size_t len;
       char *line;
       
-      printf(">");
-      if (stdout) { fflush(stdout); }
+      // printf(">");
+      // if (stdout) { fflush(stdout); }
 	
-	   if (fgets(linebuf, sizeof(linebuf), stdin)==NULL) { break; }
+	   // if (fgets(linebuf, sizeof(linebuf), stdin)==NULL) { break; }
+	   if (fgets(linebuf, sizeof(linebuf), _fd)==NULL) { break; }
 	
       len = strlen(linebuf);
       while (len && (linebuf[len-1] == '\r' || linebuf[len-1] == '\n')) {

@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
    if(0 == cam.opt.rem_sdp.slen) {
       cam.opt.rem_sdp= pj_str((char*)default_remote_sdp(cam.name.ptr));
    }
-   printf("SDP FILE(%s)\n", cam.opt.rem_sdp.ptr);
+   // printf("SDP FILE(%s)\n", cam.opt.rem_sdp.ptr);
 
 	status = app_init(&cam);
 	if(status != PJ_SUCCESS) { return 1; }
