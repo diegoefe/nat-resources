@@ -1,5 +1,22 @@
 #include "pjwrap.h"
 
+void app_perror(const char *title, pj_status_t status);
+pj_status_t handle_events(app_t* _app, unsigned max_msec, unsigned *p_count);
+/**/int app_worker_thread(void *unused);
+void cb_on_rx_data(pj_ice_strans *ice_st, unsigned comp_id, void *pkt, pj_size_t size, const pj_sockaddr_t *src_addr, unsigned src_addr_len);
+/**/void cb_on_ice_complete(pj_ice_strans *ice_st, pj_ice_strans_op op, pj_status_t status);
+void log_func(app_t* _app, int level, const char *data, int len);
+void app_create_instance(app_t* _app);
+void reset_rem_info(app_t* _app);
+void app_destroy_instance(app_t* _app);
+void app_init_session(app_t* _app, unsigned rolechar);
+void app_stop_session(app_t* _app);
+int print_cand(char buffer[], unsigned maxlen, const pj_ice_sess_cand *cand);
+int encode_session(app_t* _app, char buffer[], unsigned maxlen);
+void app_send_data(app_t* _app, unsigned comp_id, const char *data);
+void app_help_menu(app_t* _app);
+void app_print_menu(void);
+
 #define THIS_FILE   "pjwrap.c"
 
 /* Utility to display error messages */
