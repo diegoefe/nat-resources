@@ -227,7 +227,7 @@ static void cb_on_rx_data(pj_ice_strans *ice_st,
     // Don't do this! It will ruin the packet buffer in case TCP is used!
     //((char*)pkt)[size] = '\0';
 
-    PJ_LOG(3,(THIS_FILE, "Component %d: received %d bytes data from %s: \"%.*s\"",
+    PJ_LOG(1,(THIS_FILE, "Component %d: received %d bytes data from %s: \"%.*s\"",
 	      comp_id, size,
 	      pj_sockaddr_print(src_addr, ipstr, sizeof(ipstr), 3),
 	      (unsigned)size,
@@ -281,6 +281,7 @@ static pj_status_t icedemo_init(void)
 	icedemo.log_fhnd = fopen(icedemo.opt.log_file, "a");
 	pj_log_set_log_func(&log_func);
     }
+    pj_log_set_level(1);
 
     /* Initialize the libraries before anything else */
     CHECK( pj_init() );
@@ -999,7 +1000,7 @@ static void icedemo_send_data(unsigned comp_id, const char *data)
     if (status != PJ_SUCCESS)
 	icedemo_perror("Error sending data", status);
     else
-	PJ_LOG(3,(THIS_FILE, "Data sent"));
+	PJ_LOG(1,(THIS_FILE, "Data sent"));
 }
 
 

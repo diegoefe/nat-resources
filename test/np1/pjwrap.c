@@ -303,8 +303,7 @@ pj_status_t app_init(app_t* _app)
 /*
  * Create ICE stream transport instance, invoked from the menu.
  */
-void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete)
-{
+void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete) {
    pj_ice_strans_cb icecb;
    pj_status_t status;
 
@@ -362,8 +361,7 @@ void app_destroy_instance(app_t* _app)
 /*
  * Create ICE session, invoked from the menu.
  */
-void app_init_session(app_t* _app, unsigned rolechar)
-{
+void app_init_session(app_t* _app, unsigned rolechar) {
    pj_ice_sess_role role = (pj_tolower((pj_uint8_t)rolechar)=='o' ? 
       PJ_ICE_SESS_ROLE_CONTROLLING : 
       PJ_ICE_SESS_ROLE_CONTROLLED);
@@ -428,102 +426,90 @@ void app_stop_session(app_t* _app) {
 
 /* Utility to create a=candidate SDP attribute */
 int print_cand(char buffer[], unsigned maxlen, const pj_ice_sess_cand *cand) {
-    char ipaddr[PJ_INET6_ADDRSTRLEN];
-    char *p = buffer;
-    int printed;
+   char ipaddr[PJ_INET6_ADDRSTRLEN];
+   char *p = buffer;
+   int printed;
 
-    PRINT("a=candidate:%.*s %u UDP %u %s %u typ ",
-	  (int)cand->foundation.slen,
-	  cand->foundation.ptr,
-	  (unsigned)cand->comp_id,
-	  cand->prio,
-	  pj_sockaddr_print(&cand->addr, ipaddr, 
-			    sizeof(ipaddr), 0),
-	  (unsigned)pj_sockaddr_get_port(&cand->addr));
+	PRINT("a=candidate:%.*s %u UDP %u %s %u typ ",
+		(int)cand->foundation.slen,
+		cand->foundation.ptr,
+		(unsigned)cand->comp_id,
+		cand->prio,
+		pj_sockaddr_print(&cand->addr, ipaddr, sizeof(ipaddr), 0),
+		(unsigned)pj_sockaddr_get_port(&cand->addr));
+	PRINT("%s\n", pj_ice_get_cand_type_name(cand->type));
+   if (p == buffer+maxlen) {
+       return -PJ_ETOOSMALL;
+   }
 
-    PRINT("%s\n",
-	  pj_ice_get_cand_type_name(cand->type));
-
-    if (p == buffer+maxlen)
-	return -PJ_ETOOSMALL;
-
-    *p = '\0';
-
-    return (int)(p-buffer);
+   *p = '\0';
+   return (int)(p-buffer);
 }
 
 /* 
  * Encode ICE information in SDP.
  */
-int encode_session(app_t* _app, char buffer[], unsigned maxlen)
-{
-char *p = buffer;
-unsigned comp;
-int printed;
-pj_str_t local_ufrag, local_pwd;
-pj_status_t status;
+int encode_session(app_t* _app, char buffer[], unsigned maxlen) {
+	char *p = buffer;
+	unsigned comp;
+	int printed;
+	pj_str_t local_ufrag, local_pwd;
+	pj_status_t status;
+	
+	/* Write "dummy" SDP v=, o=, s=, and t= lines */
+	PRINT("v=0\no=- 3414953978 3414953978 IN IP4 localhost\ns=ice\nt=0 0\n");
+	
+	/* Get ufrag and pwd from current session */
+	pj_ice_strans_get_ufrag_pwd(_app->icest, &local_ufrag, &local_pwd, NULL, NULL);
+	
+	/* Write the a=ice-ufrag and a=ice-pwd attributes */
+	PRINT("a=ice-ufrag:%.*s\na=ice-pwd:%.*s\n",
+      	(int)local_ufrag.slen,
+      	local_ufrag.ptr,
+      	(int)local_pwd.slen,
+      	local_pwd.ptr);
+	
+	/* Write each component */
+	for (comp=0; comp<_app->opt.comp_cnt; ++comp) {
+   	unsigned j, cand_cnt;
+   	pj_ice_sess_cand cand[PJ_ICE_ST_MAX_CAND];
+   	char ipaddr[PJ_INET6_ADDRSTRLEN];
+	
+   	/* Get default candidate for the component */
+   	status = pj_ice_strans_get_def_cand(_app->icest, comp+1, &cand[0]);
+   	if (status != PJ_SUCCESS)
+   	return -status;
+	
+   	/* Write the default address */
+   	if (comp==0) {
+   	/* For component 1, default address is in m= and c= lines */
+   	PRINT("m=audio %d RTP/AVP 0\n"
+         	"c=IN IP4 %s\n",
+          	(int)pj_sockaddr_get_port(&cand[0].addr),
+          	pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+	} else if (comp==1) {
+   	/* For component 2, default address is in a=rtcp line */
+   	PRINT("a=rtcp:%d IN IP4 %s\n",
+   	(int)pj_sockaddr_get_port(&cand[0].addr),
+   	pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+	} else {
+   	/* For other components, we'll just invent this.. */
+   	PRINT("a=Xice-defcand:%d IN IP4 %s\n",
+     	      (int)pj_sockaddr_get_port(&cand[0].addr),
+            pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+	}
+	
+	/* Enumerate all candidates for this component */
+	cand_cnt = PJ_ARRAY_SIZE(cand);
+	status = pj_ice_strans_enum_cands(_app->icest, comp+1, &cand_cnt, cand);
+	if (status != PJ_SUCCESS) { return -status; }
 
-/* Write "dummy" SDP v=, o=, s=, and t= lines */
-PRINT("v=0\no=- 3414953978 3414953978 IN IP4 localhost\ns=ice\nt=0 0\n");
-
-/* Get ufrag and pwd from current session */
-pj_ice_strans_get_ufrag_pwd(_app->icest, &local_ufrag, &local_pwd,
-	 NULL, NULL);
-
-/* Write the a=ice-ufrag and a=ice-pwd attributes */
-PRINT("a=ice-ufrag:%.*s\na=ice-pwd:%.*s\n",
-(int)local_ufrag.slen,
-local_ufrag.ptr,
-(int)local_pwd.slen,
-local_pwd.ptr);
-
-/* Write each component */
-for (comp=0; comp<_app->opt.comp_cnt; ++comp) {
-unsigned j, cand_cnt;
-pj_ice_sess_cand cand[PJ_ICE_ST_MAX_CAND];
-char ipaddr[PJ_INET6_ADDRSTRLEN];
-
-/* Get default candidate for the component */
-status = pj_ice_strans_get_def_cand(_app->icest, comp+1, &cand[0]);
-if (status != PJ_SUCCESS)
-return -status;
-
-/* Write the default address */
-if (comp==0) {
-/* For component 1, default address is in m= and c= lines */
-PRINT("m=audio %d RTP/AVP 0\n"
-"c=IN IP4 %s\n",
-(int)pj_sockaddr_get_port(&cand[0].addr),
-pj_sockaddr_print(&cand[0].addr, ipaddr,
-		  sizeof(ipaddr), 0));
-} else if (comp==1) {
-/* For component 2, default address is in a=rtcp line */
-PRINT("a=rtcp:%d IN IP4 %s\n",
-(int)pj_sockaddr_get_port(&cand[0].addr),
-pj_sockaddr_print(&cand[0].addr, ipaddr,
-		  sizeof(ipaddr), 0));
-} else {
-/* For other components, we'll just invent this.. */
-PRINT("a=Xice-defcand:%d IN IP4 %s\n",
-(int)pj_sockaddr_get_port(&cand[0].addr),
-pj_sockaddr_print(&cand[0].addr, ipaddr,
-		  sizeof(ipaddr), 0));
-}
-
-/* Enumerate all candidates for this component */
-cand_cnt = PJ_ARRAY_SIZE(cand);
-status = pj_ice_strans_enum_cands(_app->icest, comp+1,
-			&cand_cnt, cand);
-if (status != PJ_SUCCESS)
-return -status;
-
-/* And encode the candidates as SDP */
-for (j=0; j<cand_cnt; ++j) {
-printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
-if (printed < 0)
-return -PJ_ETOOSMALL;
-p += printed;
-}
+   /* And encode the candidates as SDP */
+   for (j=0; j<cand_cnt; ++j) {
+      printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
+      if (printed < 0) { return -PJ_ETOOSMALL; }
+      p += printed;
+   }
 }
 
 if (p == buffer+maxlen)
@@ -534,10 +520,7 @@ return (int)(p - buffer);
 }
 
 
-/*
-* Show information contained in the ICE stream transport. This is
-* invoked from the menu.
-*/
+/* Show information contained in the ICE stream transport. This is */
 void app_show_ice(app_t* _app) {
    static char buffer[1000];
    int len;
@@ -619,167 +602,143 @@ void app_input_remote(app_t* _app) {
 	comp0_addr[0] = '\0';
 	
 	while (!done) {
-	pj_size_t len;
-	char *line;
+      pj_size_t len;
+      char *line;
+      
+      printf(">");
+      if (stdout) { fflush(stdout); }
 	
-	printf(">");
-	if (stdout) fflush(stdout);
+	   if (fgets(linebuf, sizeof(linebuf), stdin)==NULL) { break; }
 	
-	if (fgets(linebuf, sizeof(linebuf), stdin)==NULL)
-	break;
+      len = strlen(linebuf);
+      while (len && (linebuf[len-1] == '\r' || linebuf[len-1] == '\n')) {
+         linebuf[--len] = '\0';
+      }
 	
-	len = strlen(linebuf);
-	while (len && (linebuf[len-1] == '\r' || linebuf[len-1] == '\n'))
-	linebuf[--len] = '\0';
+      line = linebuf;
+      while (len && pj_isspace(*line)) { ++line, --len; }
+	   if (len==0) { break; }
 	
-	line = linebuf;
-	while (len && pj_isspace(*line))
-	++line, --len;
+      /* Ignore subsequent media descriptors */
+      if (media_cnt > 1) { continue; }
 	
-	if (len==0)
-	break;
+      switch (line[0]) {
+         case 'm': {
+               int cnt;
+               char media[32], portstr[32];
+               ++media_cnt;
+               if (media_cnt > 1) {
+                  puts("Media line ignored");
+                  break;
+               }
+               cnt = sscanf(line+2, "%s %s RTP/", media, portstr);
+               if (cnt != 2) {
+                  PJ_LOG(1,(THIS_FILE, "Error parsing media line"));
+                  goto on_error;
+               }
+               comp0_port = atoi(portstr);
+            }
+            break;
+         case 'c': {
+               int cnt;
+               char c[32], net[32], ip[80];
+               cnt = sscanf(line+2, "%s %s %s", c, net, ip);
+               if (cnt != 3) {
+                  PJ_LOG(1,(THIS_FILE, "Error parsing connection line"));
+                  goto on_error;
+               }
+               strcpy(comp0_addr, ip);
+            }
+            break;
+         case 'a': {
+            char *attr = strtok(line+2, ": \t\r\n");
+            if (strcmp(attr, "ice-ufrag")==0) {
+               strcpy(_app->rem.ufrag, attr+strlen(attr)+1);
+            } else if (strcmp(attr, "ice-pwd")==0) {
+               strcpy(_app->rem.pwd, attr+strlen(attr)+1);
+            } else if (strcmp(attr, "rtcp")==0) {
+               char *val = attr+strlen(attr)+1;
+               int af, cnt;
+               int port;
+               char net[32], ip[64];
+               pj_str_t tmp_addr;
+               pj_status_t status;
+               cnt = sscanf(val, "%d IN %s %s", &port, net, ip);
+               if (cnt != 3) {
+                  PJ_LOG(1,(THIS_FILE, "Error parsing rtcp attribute"));
+                  goto on_error;
+               }
+               if (strchr(ip, ':')) {
+                  af = pj_AF_INET6();
+               } else {
+                  af = pj_AF_INET();
+               }
+               
+               pj_sockaddr_init(af, &_app->rem.def_addr[1], NULL, 0);
+               tmp_addr = pj_str(ip);
+               status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[1], &tmp_addr);
+               if (status != PJ_SUCCESS) {
+                  PJ_LOG(1,(THIS_FILE, "Invalid IP address"));
+                  goto on_error;
+               }
+               pj_sockaddr_set_port(&_app->rem.def_addr[1], (pj_uint16_t)port);
+            } else if (strcmp(attr, "candidate")==0) {
+               char *sdpcand = attr+strlen(attr)+1;
+               int af, cnt;
+               char foundation[32], transport[12], ipaddr[80], type[32];
+               pj_str_t tmpaddr;
+               int comp_id, prio, port;
+               pj_ice_sess_cand *cand;
+               pj_status_t status;
+               cnt = sscanf(sdpcand, "%s %d %s %d %s %d typ %s",
+                            foundation,
+                            &comp_id,
+                            transport,
+                            &prio,
+                            ipaddr,
+                            &port,
+                            type);
+               if (cnt != 7) {
+                  PJ_LOG(1, (THIS_FILE, "error: Invalid ICE candidate line"));
+                  goto on_error;
+               }
+               cand = &_app->rem.cand[_app->rem.cand_cnt];
+               pj_bzero(cand, sizeof(*cand));
+               if (strcmp(type, "host")==0) {
+                  cand->type = PJ_ICE_CAND_TYPE_HOST;
+               } else if (strcmp(type, "srflx")==0) {
+                  cand->type = PJ_ICE_CAND_TYPE_SRFLX;
+               } else if (strcmp(type, "relay")==0) {
+                  cand->type = PJ_ICE_CAND_TYPE_RELAYED;
+               } else {
+                  PJ_LOG(1, (THIS_FILE, "Error: invalid candidate type '%s'", type));
+                  goto on_error;
+	            }
 	
-	/* Ignore subsequent media descriptors */
-	if (media_cnt > 1)
-	continue;
-	
-	switch (line[0]) {
-	case 'm':
-	{
-	int cnt;
-	char media[32], portstr[32];
-	
-	++media_cnt;
-	if (media_cnt > 1) {
-	  puts("Media line ignored");
-	  break;
-	}
-	
-	cnt = sscanf(line+2, "%s %s RTP/", media, portstr);
-	if (cnt != 2) {
-	  PJ_LOG(1,(THIS_FILE, "Error parsing media line"));
-	  goto on_error;
-	}
-	
-	comp0_port = atoi(portstr);
-	
-	}
-	break;
-	case 'c':
-	{
-	int cnt;
-	char c[32], net[32], ip[80];
-	
-	cnt = sscanf(line+2, "%s %s %s", c, net, ip);
-	if (cnt != 3) {
-	  PJ_LOG(1,(THIS_FILE, "Error parsing connection line"));
-	  goto on_error;
-	}
-	
-	strcpy(comp0_addr, ip);
-	}
-	break;
-	case 'a':
-	{
-	char *attr = strtok(line+2, ": \t\r\n");
-	if (strcmp(attr, "ice-ufrag")==0) {
-	  strcpy(_app->rem.ufrag, attr+strlen(attr)+1);
-	} else if (strcmp(attr, "ice-pwd")==0) {
-	  strcpy(_app->rem.pwd, attr+strlen(attr)+1);
-	} else if (strcmp(attr, "rtcp")==0) {
-	  char *val = attr+strlen(attr)+1;
-	  int af, cnt;
-	  int port;
-	  char net[32], ip[64];
-	  pj_str_t tmp_addr;
-	  pj_status_t status;
-	
-	  cnt = sscanf(val, "%d IN %s %s", &port, net, ip);
-	  if (cnt != 3) {
-	 PJ_LOG(1,(THIS_FILE, "Error parsing rtcp attribute"));
-	 goto on_error;
-	  }
-	
-	  if (strchr(ip, ':'))
-	 af = pj_AF_INET6();
-	  else
-	 af = pj_AF_INET();
-	
-	  pj_sockaddr_init(af, &_app->rem.def_addr[1], NULL, 0);
-	  tmp_addr = pj_str(ip);
-	  status = pj_sockaddr_set_str_addr(af, &_app->rem.def_addr[1],
-						 &tmp_addr);
-	  if (status != PJ_SUCCESS) {
-	 PJ_LOG(1,(THIS_FILE, "Invalid IP address"));
-	 goto on_error;
-	  }
-	  pj_sockaddr_set_port(&_app->rem.def_addr[1], (pj_uint16_t)port);
-	
-	} else if (strcmp(attr, "candidate")==0) {
-	  char *sdpcand = attr+strlen(attr)+1;
-	  int af, cnt;
-	  char foundation[32], transport[12], ipaddr[80], type[32];
-	  pj_str_t tmpaddr;
-	  int comp_id, prio, port;
-	  pj_ice_sess_cand *cand;
-	  pj_status_t status;
-	
-	  cnt = sscanf(sdpcand, "%s %d %s %d %s %d typ %s",
-		  foundation,
-		  &comp_id,
-		  transport,
-		  &prio,
-		  ipaddr,
-		  &port,
-		  type);
-	  if (cnt != 7) {
-	 PJ_LOG(1, (THIS_FILE, "error: Invalid ICE candidate line"));
-	 goto on_error;
-	  }
-	
-	  cand = &_app->rem.cand[_app->rem.cand_cnt];
-	  pj_bzero(cand, sizeof(*cand));
-	  
-	  if (strcmp(type, "host")==0)
-	 cand->type = PJ_ICE_CAND_TYPE_HOST;
-	  else if (strcmp(type, "srflx")==0)
-	 cand->type = PJ_ICE_CAND_TYPE_SRFLX;
-	  else if (strcmp(type, "relay")==0)
-	 cand->type = PJ_ICE_CAND_TYPE_RELAYED;
-	  else {
-	 PJ_LOG(1, (THIS_FILE, "Error: invalid candidate type '%s'", 
-			 type));
-	 goto on_error;
-	  }
-	
-	  cand->comp_id = (pj_uint8_t)comp_id;
-	  pj_strdup2(_app->pool, &cand->foundation, foundation);
-	  cand->prio = prio;
-	  
-	  if (strchr(ipaddr, ':'))
-	 af = pj_AF_INET6();
-	  else
-	 af = pj_AF_INET();
-	
-	  tmpaddr = pj_str(ipaddr);
-	  pj_sockaddr_init(af, &cand->addr, NULL, 0);
-	  status = pj_sockaddr_set_str_addr(af, &cand->addr, &tmpaddr);
-	  if (status != PJ_SUCCESS) {
-	 PJ_LOG(1,(THIS_FILE, "Error: invalid IP address '%s'",
-			ipaddr));
-	 goto on_error;
-	  }
-	
-	  pj_sockaddr_set_port(&cand->addr, (pj_uint16_t)port);
-	
-	  ++_app->rem.cand_cnt;
-	
-	  if (cand->comp_id > _app->rem.comp_cnt)
-	 _app->rem.comp_cnt = cand->comp_id;
-	}
-	}
-	break;
-	}
+               cand->comp_id = (pj_uint8_t)comp_id;
+               pj_strdup2(_app->pool, &cand->foundation, foundation);
+               cand->prio = prio;
+               if (strchr(ipaddr, ':')) {
+                  af = pj_AF_INET6();
+               } else {
+                  af = pj_AF_INET();
+               }
+               tmpaddr = pj_str(ipaddr);
+               pj_sockaddr_init(af, &cand->addr, NULL, 0);
+               status = pj_sockaddr_set_str_addr(af, &cand->addr, &tmpaddr);
+               if (status != PJ_SUCCESS) {
+                  PJ_LOG(1,(THIS_FILE, "Error: invalid IP address '%s'", ipaddr));
+                  goto on_error;
+               }
+               pj_sockaddr_set_port(&cand->addr, (pj_uint16_t)port);
+               ++_app->rem.cand_cnt;
+               if (cand->comp_id > _app->rem.comp_cnt) {
+                  _app->rem.comp_cnt = cand->comp_id;
+               }
+            }
+			}
+			break;
+		}
 	}
 	
 	if (_app->rem.cand_cnt==0 ||
@@ -904,8 +863,7 @@ void app_send_data(app_t* _app, unsigned comp_id, const char *data)
 /*
 * Display help for the menu.
 */
-void app_help_menu(app_t* _app)
-{
+void app_help_menu(app_t* _app) {
 	puts("");
 	puts("-= Help on using ICE and this _app->program =-");
 	puts("");
@@ -914,25 +872,25 @@ void app_help_menu(app_t* _app)
 	"two instances of this application, to simulate two ICE agents.\n");
 	
 	puts("Basic ICE flow:\n"
-	" create instance [menu \"c\"]\n"
-	" repeat these steps as wanted:\n"
-	"   - init session as offerer or answerer [menu \"i\"]\n"
-	"   - display our SDP [menu \"s\"]\n"
-	"   - \"send\" our SDP from the \"show\" output above to remote, by\n"
-	"     copy-pasting the SDP to the other _app->application\n"
-	"   - parse remote SDP, by pasting SDP generated by the other app\n"
-	"     instance [menu \"r\"]\n"
-	"   - begin ICE negotiation in our end [menu \"b\"], and \n"
-	"   - immediately begin ICE negotiation in the other app instance\n"
-	"   - ICE negotiation will run, and result will be printed to screen\n"
-	"   - send application data to remote [menu \"x\"]\n"
-	"   - end/stop ICE session [menu \"e\"]\n"
-	" destroy instance [menu \"d\"]\n"
-"");
-
-puts("");
-puts("This concludes the help screen.");
-puts("");
+		" create instance [menu \"c\"]\n"
+		" repeat these steps as wanted:\n"
+		"   - init session as offerer or answerer [menu \"i\"]\n"
+		"   - display our SDP [menu \"s\"]\n"
+		"   - \"send\" our SDP from the \"show\" output above to remote, by\n"
+		"     copy-pasting the SDP to the other _app->application\n"
+		"   - parse remote SDP, by pasting SDP generated by the other app\n"
+		"     instance [menu \"r\"]\n"
+		"   - begin ICE negotiation in our end [menu \"b\"], and \n"
+		"   - immediately begin ICE negotiation in the other app instance\n"
+		"   - ICE negotiation will run, and result will be printed to screen\n"
+		"   - send application data to remote [menu \"x\"]\n"
+		"   - end/stop ICE session [menu \"e\"]\n"
+		" destroy instance [menu \"d\"]\n"
+		"");
+	
+	puts("");
+	puts("This concludes the help screen.");
+	puts("");
 }
 
 
