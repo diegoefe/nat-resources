@@ -496,41 +496,38 @@ int encode_session(app_t* _app, char buffer[], unsigned maxlen) {
 	
    	/* Write the default address */
    	if (comp==0) {
-   	/* For component 1, default address is in m= and c= lines */
-   	PRINT("m=audio %d RTP/AVP 0\n"
-         	"c=IN IP4 %s\n",
-          	(int)pj_sockaddr_get_port(&cand[0].addr),
-          	pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
-	} else if (comp==1) {
-   	/* For component 2, default address is in a=rtcp line */
-   	PRINT("a=rtcp:%d IN IP4 %s\n",
-   	(int)pj_sockaddr_get_port(&cand[0].addr),
-   	pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
-	} else {
-   	/* For other components, we'll just invent this.. */
-   	PRINT("a=Xice-defcand:%d IN IP4 %s\n",
-     	      (int)pj_sockaddr_get_port(&cand[0].addr),
-            pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
-	}
-	
-	/* Enumerate all candidates for this component */
-	cand_cnt = PJ_ARRAY_SIZE(cand);
-	status = pj_ice_strans_enum_cands(_app->icest, comp+1, &cand_cnt, cand);
-	if (status != PJ_SUCCESS) { return -status; }
+      	/* For component 1, default address is in m= and c= lines */
+         PRINT("m=audio %d RTP/AVP 0\n"
+               "c=IN IP4 %s\n",
+               (int)pj_sockaddr_get_port(&cand[0].addr),
+               pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+	   } else if (comp==1) {
+         /* For component 2, default address is in a=rtcp line */
+         PRINT("a=rtcp:%d IN IP4 %s\n",
+               (int)pj_sockaddr_get_port(&cand[0].addr),
+               pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+	   } else {
+         /* For other components, we'll just invent this.. */
+         PRINT("a=Xice-defcand:%d IN IP4 %s\n",
+               (int)pj_sockaddr_get_port(&cand[0].addr),
+               pj_sockaddr_print(&cand[0].addr, ipaddr, sizeof(ipaddr), 0));
+      }
+      /* Enumerate all candidates for this component */
+      cand_cnt = PJ_ARRAY_SIZE(cand);
+      status = pj_ice_strans_enum_cands(_app->icest, comp+1, &cand_cnt, cand);
+      if (status != PJ_SUCCESS) { return -status; }
 
-   /* And encode the candidates as SDP */
-   for (j=0; j<cand_cnt; ++j) {
-      printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
-      if (printed < 0) { return -PJ_ETOOSMALL; }
-      p += printed;
+      /* And encode the candidates as SDP */
+      for (j=0; j<cand_cnt; ++j) {
+         printed = print_cand(p, maxlen - (unsigned)(p-buffer), &cand[j]);
+         if (printed < 0) { return -PJ_ETOOSMALL; }
+         p += printed;
+      }
    }
-}
 
-if (p == buffer+maxlen)
-return -PJ_ETOOSMALL;
-
-*p = '\0';
-return (int)(p - buffer);
+   if (p == buffer+maxlen) { return -PJ_ETOOSMALL; }
+   *p = '\0';
+   return (int)(p - buffer);
 }
 
 
@@ -568,13 +565,13 @@ void app_show_ice(app_t* _app) {
 	pj_ice_strans_get_role(_app->icest)==PJ_ICE_SESS_ROLE_CONTROLLED ?  "controlled" : "controlling");
 	
 	len = encode_session(_app, buffer, sizeof(buffer));
-	if (len < 0)
-   	err_exit(_app, "not enough buffer to show ICE status", -len);
+	if (len < 0) {
+      err_exit(_app, "not enough buffer to show ICE status", -len);
+   }
 	puts("");
 	printf("Local SDP (paste this to remote host):\n"
-   	"--------------------------------------\n"
-   	"%s\n", buffer);
-	
+          "--------------------------------------\n"
+          "%s\n", buffer);
 	
 	puts("");
 	puts("Remote info:\n"
@@ -884,6 +881,7 @@ void app_usage(app_t* _app)
 	puts("");
 	puts("General options:");
 	puts(" --log-file, -L FILE       Save output to log FILE");
+	puts(" --remote-sdp, -R FILE     Load remote candidates from SDP FILE");
 	puts(" --help, -h                Display this screen.");
 	puts("");
 	puts("STUN related options:");

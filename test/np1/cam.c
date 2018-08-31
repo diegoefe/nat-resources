@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
 		{ "help",		0, 0, 'h'},
 		{ "stun-srv",	1, 0, 's'},
 		{ "log-file",	1, 0, 'L'},
+		{ "remote-sdp",	1, 0, 'R'},
 	};
 	int c, opt_id;
 	pj_status_t status;
@@ -79,8 +80,10 @@ int main(int argc, char *argv[]) {
 	cam.state = Start;
 	cam.opt.comp_cnt = NUM_CANDIDATES;
 	cam.opt.max_host = -1;
+   cam.opt.rem_sdp.ptr = 0;
+   cam.opt.rem_sdp.slen = 0;
 
-	while((c=pj_getopt_long(argc,argv, "s:h:L", long_options, &opt_id))!=-1) {
+	while((c=pj_getopt_long(argc,argv, "s:h:L:R", long_options, &opt_id))!=-1) {
 		switch (c) {
 			case 'h':
 				app_usage(&cam);
@@ -91,12 +94,19 @@ int main(int argc, char *argv[]) {
 			case 'L':
 				cam.opt.log_file = pj_optarg;
 				break;
+			case 'R':
+				cam.opt.rem_sdp= pj_str(pj_optarg);
+				break;
 			default:
-				printf("Argument \"%s\" is not valid. Use -h to see help",
+				printf("Argument \"%s\" is not valid. Use -h to see help\n",
 				argv[pj_optind]);
 				return 1;
 		}
 	}
+   if(0 == cam.opt.rem_sdp.slen) {
+      cam.opt.rem_sdp= pj_str((char*)default_remote_sdp(cam.name.ptr));
+   }
+   printf("SDP FILE(%s)\n", cam.opt.rem_sdp.ptr);
 
 	status = app_init(&cam);
 	if(status != PJ_SUCCESS) { return 1; }
