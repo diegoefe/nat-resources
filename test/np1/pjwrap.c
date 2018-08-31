@@ -577,33 +577,34 @@ void app_show_ice(app_t* _app) {
       if(NULL == sdp) {
          err_exit(_app, "couldn't not write SDP file", -1);
       }
-      printf("Writing SDP info to '%s'...", pj_strbuf(&name));
+      printf("Writing SDP info to '%s' and exit...", pj_strbuf(&name));
       fwrite(buffer, len, 1, sdp);
       printf(" done.\n");
       fclose(sdp);
 
-   }
-	printf("Local SDP (paste this to remote host):\n"
-          "--------------------------------------\n"
-          "%s\n", buffer);
-	
-	puts("");
-	puts("Remote info:\n"
-	"----------------------");
-	if (_app->rem.cand_cnt==0) {
-   	puts("No remote info yet");
-	} else {
-   	unsigned i;
-	
-   	printf("Remote ufrag       : %s\n", _app->rem.ufrag);
-   	printf("Remote password    : %s\n", _app->rem.pwd);
-   	printf("Remote cand. cnt.  : %d\n", _app->rem.cand_cnt);
-	
-   	for (i=0; i<_app->rem.cand_cnt; ++i) {
-         len = print_cand(buffer, sizeof(buffer), &_app->rem.cand[i]);
-         if (len < 0)
-            err_exit(_app, "not enough buffer to show ICE status", -len);
-         printf("  %s", buffer);
+   } else {
+      printf("Local SDP (paste this to remote host):\n"
+             "--------------------------------------\n"
+             "%s\n", buffer);
+      
+      puts("");
+      puts("Remote info:\n"
+      "----------------------");
+      if (_app->rem.cand_cnt==0) {
+         puts("No remote info yet");
+      } else {
+         unsigned i;
+      
+         printf("Remote ufrag       : %s\n", _app->rem.ufrag);
+         printf("Remote password    : %s\n", _app->rem.pwd);
+         printf("Remote cand. cnt.  : %d\n", _app->rem.cand_cnt);
+      
+         for (i=0; i<_app->rem.cand_cnt; ++i) {
+            len = print_cand(buffer, sizeof(buffer), &_app->rem.cand[i]);
+            if (len < 0)
+               err_exit(_app, "not enough buffer to show ICE status", -len);
+            printf("  %s", buffer);
+         }
       }
    }
 }
@@ -884,27 +885,6 @@ void app_send_data(app_t* _app, unsigned comp_id, const char *data)
 		PJ_LOG(3,(THIS_FILE, "Data sent"));
 }
 
-
-/*
-* Display program usage.
-*/
-void app_usage(app_t* _app)
-{
-	printf("Usage: %s [options]\n", _app->name.ptr);
-	printf("%s, using pjsip(%s)\n", _app->name.ptr, pj_get_version());
-	puts("");
-	puts("General options:");
-	puts(" --log-file, -L FILE       Save output to log FILE");
-	puts(" --remote-sdp, -R FILE     Load remote candidates from SDP FILE");
-	puts(" --write-sdp, -W           Load remote candidates from SDP FILE");
-	puts(" --help, -h                Display this screen.");
-	puts("");
-	puts("STUN related options:");
-	puts(" --stun-srv, -s HOSTDOM    Enable srflx candidate by resolving to STUN server.");
-	puts("                           HOSTDOM may be a \"host_or_ip[:port]\" or a domain");
-	puts("                           name if DNS SRV resolution is used.");
-	puts("");
-}
 
 void app_start(app_t* _app, char _role) {
 	pj_log_set_level(_app->log_level);

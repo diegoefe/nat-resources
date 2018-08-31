@@ -57,7 +57,6 @@ typedef struct
 } app_t;
 
 
-void app_usage(app_t* _app);
 pj_status_t app_init(app_t* _app);
 void app_start(app_t* _app, char _role);
 void app_show_ice(app_t* _app);

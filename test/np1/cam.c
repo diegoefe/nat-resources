@@ -61,6 +61,24 @@ void cb_on_rx_data(pj_ice_strans *ice_st,
 }
 
 
+void cam_usage(app_t* _app)
+{
+	printf("Usage: %s [options]\n", _app->name.ptr);
+	printf("%s, using pjsip(%s)\n", _app->name.ptr, pj_get_version());
+	puts("");
+	puts("General options:");
+	puts(" --log-file, -L FILE       Save output to log FILE");
+	puts(" --remote-sdp, -R FILE     Load remote candidates from SDP FILE");
+	puts(" --write-sdp, -W           Load remote candidates from SDP FILE");
+	puts(" --help, -h                Display this screen.");
+	puts("");
+	puts("STUN related options:");
+	puts(" --stun-srv, -s HOSTDOM    Enable srflx candidate by resolving to STUN server.");
+	puts("                           HOSTDOM may be a \"host_or_ip[:port]\" or a domain");
+	puts("                           name if DNS SRV resolution is used.");
+	puts("");
+}
+
 /*
  * And here's the main()
  */
@@ -88,7 +106,7 @@ int main(int argc, char *argv[]) {
 	while((c=pj_getopt_long(argc,argv, "s:h:L:R:W", long_options, &opt_id))!=-1) {
 		switch (c) {
 			case 'h':
-				app_usage(&cam);
+				cam_usage(&cam);
 				return 0;
 			case 's':
 				cam.opt.stun_srv = pj_str(pj_optarg);
@@ -121,7 +139,7 @@ int main(int argc, char *argv[]) {
 	app_start(&cam, 'o');
 	while(cam.state != IceDoneInit) { pj_thread_sleep(100); }
 	app_show_ice(&cam);
-   if(PJ_FALSE == cam.opt.write_sdp) {
+   if(PJ_TRUE == cam.opt.write_sdp) {
 	  // app_input_remote();
 	  // app_start_nego()
    }
