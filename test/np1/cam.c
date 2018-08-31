@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "pjwrap.h"
+#include "np1.h"
 
 app_t cam;
 
@@ -32,6 +33,35 @@ void cb_on_ice_complete(pj_ice_strans *ice_st,
 }
 
 /*
+ * This is the callback that is registered to the ICE stream transport to
+ * receive notification about incoming data. By "data" it means application
+ * data such as RTP/RTCP, and not packets that belong to ICE signaling (such
+ * as STUN connectivity checks or TURN signaling).
+ */
+void cb_on_rx_data(pj_ice_strans *ice_st,
+			  unsigned comp_id, 
+			  void *pkt, pj_size_t size,
+			  const pj_sockaddr_t *src_addr,
+			  unsigned src_addr_len)
+{
+    char ipstr[PJ_INET6_ADDRSTRLEN+10];
+
+    PJ_UNUSED_ARG(ice_st);
+    PJ_UNUSED_ARG(src_addr_len);
+    PJ_UNUSED_ARG(pkt);
+
+    // Don't do this! It will ruin the packet buffer in case TCP is used!
+    //((char*)pkt)[size] = '\0';
+
+    PJ_LOG(1,(THIS_FILE, "Component %d: received %d bytes data from %s: \"%.*s\"",
+	      comp_id, size,
+	      pj_sockaddr_print(src_addr, ipstr, sizeof(ipstr), 3),
+	      (unsigned)size,
+	      (char*)pkt));
+}
+
+
+/*
  * And here's the main()
  */
 int main(int argc, char *argv[]) {
@@ -47,7 +77,7 @@ int main(int argc, char *argv[]) {
 	// cam.log_level = 3;
 	cam.log_level = 1;
 	cam.state = Start;
-	cam.opt.comp_cnt = 1;
+	cam.opt.comp_cnt = NUM_CANDIDATES;
 	cam.opt.max_host = -1;
 
 	while((c=pj_getopt_long(argc,argv, "s:h:L", long_options, &opt_id))!=-1) {
@@ -72,7 +102,8 @@ int main(int argc, char *argv[]) {
 	if(status != PJ_SUCCESS) { return 1; }
 
 	printf("starting...\n");
-	app_start(&cam, 'o', cb_on_ice_complete);
+   ice_set_cbs(&cam.icecb, cb_on_ice_complete, cb_on_rx_data);
+	app_start(&cam, 'o');
 	while(cam.state != IceDoneInit) { pj_thread_sleep(100); }
 	app_show_ice(&cam);
 	//app_input_remote();

@@ -135,6 +135,7 @@ int app_worker_thread(void *arg)
     return 0;
 }
 
+#if 0
 /*
  * This is the callback that is registered to the ICE stream transport to
  * receive notification about incoming data. By "data" it means application
@@ -163,7 +164,6 @@ void cb_on_rx_data(pj_ice_strans *ice_st,
 	      (char*)pkt));
 }
 
-#if 0
 /*
  * This is the callback that is registered to the ICE stream transport to
  * receive notification about ICE state progression.
@@ -299,12 +299,17 @@ pj_status_t app_init(app_t* _app)
     return PJ_SUCCESS;
 }
 
+void ice_set_cbs(pj_ice_strans_cb* _iscb, f_on_ice_complete _complete_cb, f_on_ice_rx_data _data_cb) {
+   /* init the callback */
+   pj_bzero(_iscb, sizeof(pj_ice_strans_cb));
+   _iscb->on_ice_complete = _complete_cb;
+   _iscb->on_rx_data = _data_cb;
+}
 
 /*
  * Create ICE stream transport instance, invoked from the menu.
  */
-void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete) {
-   pj_ice_strans_cb icecb;
+void app_create_instance(app_t* _app) {
    pj_status_t status;
 
    if (_app->icest != NULL) {
@@ -312,18 +317,12 @@ void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete) {
       return;
    }
 
-   /* init the callback */
-   pj_bzero(&icecb, sizeof(icecb));
-   icecb.on_rx_data = cb_on_rx_data;
-   // icecb.on_ice_complete = cb_on_ice_complete;
-   icecb.on_ice_complete = _on_ice_complete;
-
    /* create the instance */
    status = pj_ice_strans_create(_app->name.ptr,		    /* object name  */
 				&_app->ice_cfg,	    /* settings	    */
 				_app->opt.comp_cnt,	    /* comp_cnt	    */
 				NULL,			    /* user data    */
-				&icecb,			    /* callback	    */
+				&_app->icecb,			    /* callback	    */
 				&_app->icest)		    /* instance ptr */
 				;
    if (status != PJ_SUCCESS)
@@ -937,9 +936,9 @@ void app_usage(app_t* _app)
 	puts("");
 }
 
-void app_start(app_t* _app, char _role, f_on_ice_complete _on_ice_complete) {
+void app_start(app_t* _app, char _role) {
 	pj_log_set_level(_app->log_level);
-	app_create_instance(_app, _on_ice_complete);
+	app_create_instance(_app);
 	app_init_session(_app, _role);
 }
 

@@ -38,6 +38,7 @@ typedef struct
 	pj_thread_t		*thread;
 	pj_bool_t		 thread_quit_flag;
 	pj_ice_strans_cfg	 ice_cfg;
+   pj_ice_strans_cb icecb;
 	pj_ice_strans	*icest;
 	FILE		*log_fhnd;
 
@@ -62,10 +63,10 @@ void cb_on_rx_data(pj_ice_strans *ice_st, unsigned comp_id, void *pkt, pj_size_t
 /**/void cb_on_ice_complete(pj_ice_strans *ice_st, pj_ice_strans_op op, pj_status_t status);
 void log_func(app_t* _app, int level, const char *data, int len);
 pj_status_t app_init(app_t* _app);
-typedef void (*f_on_ice_complete)(pj_ice_strans *ice_st, 
-			       pj_ice_strans_op op,
-			       pj_status_t status);
-void app_create_instance(app_t* _app, f_on_ice_complete _on_ice_complete);
+typedef void (*f_on_ice_complete)(pj_ice_strans *ice_st, pj_ice_strans_op op, pj_status_t status);
+typedef void (*f_on_ice_rx_data)(pj_ice_strans*, unsigned, void*, pj_size_t, const pj_sockaddr_t *, unsigned);
+void ice_set_cbs(pj_ice_strans_cb* _iscb, f_on_ice_complete _complete_cb, f_on_ice_rx_data _data_cb);
+void app_create_instance(app_t* _app);
 void reset_rem_info(app_t* _app);
 void app_destroy_instance(app_t* _app);
 void app_init_session(app_t* _app, unsigned rolechar);
@@ -80,7 +81,7 @@ void app_help_menu(app_t* _app);
 void app_print_menu(void);
 void app_usage(app_t* _app);
 
-void app_start(app_t* _app, char _role, f_on_ice_complete);
+void app_start(app_t* _app, char _role);
 void app_stop(app_t* _app);
 
 #endif
