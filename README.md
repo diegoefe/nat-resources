@@ -22,7 +22,11 @@
 - pjsip:
     - For ubuntu:
     ```bash
-    sudo apt-get install gtk-doc-tools
     sudo apt-get install uuid-dev
     sudo apt-get install libssl-dev
+    ```
+- nice:
+    - For ubuntu:
+    ```bash
+    sudo apt-get install gtk-doc-tools
     ```
