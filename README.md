@@ -18,15 +18,14 @@
 [List of public STUN servers](stun_servers.txt)
 
 
-## Notes on installation
-- pjsip:
-    - For ubuntu:
+## Notes on installation of dependencies
+- On Ubuntu
+    - pjsip dependencies:
     ```bash
     sudo apt-get install uuid-dev
     sudo apt-get install libssl-dev
     ```
-- nice:
-    - For ubuntu:
+    - nice dependencies:
     ```bash
     sudo apt-get install gtk-doc-tools
     ```
