@@ -7,6 +7,10 @@ option(USE_NICE "Use libnice library" ON)
 configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR}/np1/common.sh @ONLY)
 
+set(OPENSSL_USE_STATIC_LIBS 1)
+#set(OPENSSL_ROOT_DIR ${ibase})
+find_package(OpenSSL REQUIRED)
+
 if(USE_PJSIP)
     # pjsip
     include_directories(${ibase}/include)
@@ -24,16 +28,13 @@ if(USE_PJSIP)
     if(pj STREQUAL pj-NOTFOUND OR pjnat STREQUAL pjnat-NOTFOUND OR pju STREQUAL pju-NOTFOUND)
         message(FATAL_ERROR "pjsip libraries not found!")
     endif()
-
-    #set(OPENSSL_ROOT_DIR ${ibase})
-    find_package(OpenSSL REQUIRED)
     
     find_library(uuid uuid)
     if(uuid STREQUAL uuid-NOTFOUND)
         message(FATAL_ERROR "uuid libraries not found!")
     endif()
 
-    list(APPEND pjs ${pjnat} ${pju} ${pj} OpenSSL::SSL OpenSSL::Crypto ${uuid})
+    list(APPEND pjs ${pjnat} ${pju} ${pj} OpenSSL::SSL OpenSSL::Crypto ${uuid} dl)
     message("pjs(${pjs})")
 
     add_executable(ice_pj_ori icedemo.c)
@@ -51,13 +52,14 @@ if(USE_NICE)
     include_directories(${ibase}/include/nice)
     include_directories(/usr/include/glib-2.0)
     include_directories(/usr/lib/x86_64-linux-gnu/glib-2.0/include)
-    find_library(nice nice PATH ${ibase}/lib)
+    #find_library(nice nice PATH ${ibase}/lib)
+    find_library(nice NAMES libnice.a PATH ${ibase}/lib)
 
     if(nice STREQUAL nice-NOTFOUND)
         message(FATAL_ERROR "libnice not found!")
     endif()
 
-    list(APPEND nices ${nice} gio-2.0 gobject-2.0 gthread-2.0 pthread glib-2.0)
+    list(APPEND nices ${nice} gio-2.0 gobject-2.0 gthread-2.0 pthread glib-2.0 OpenSSL::SSL OpenSSL::Crypto dl pthread)
 
     #include_directories(${ibase}/include/liveMedia)
     #find_library(liveBUE BasicUsageEnvironment PATH ${ibase}/lib)
