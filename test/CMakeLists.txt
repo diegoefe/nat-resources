@@ -43,6 +43,7 @@ if(USE_PJSIP)
     target_link_libraries(tpj ${pjs} pthread m)
 
     configure_file(run_pj.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+    configure_file(run_pj_turn.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 
     add_subdirectory(np1)
 endif()

@@ -280,6 +280,8 @@ static void
 cb_nice_recv(NiceAgent *agent, guint _stream_id, guint component_id,
     guint len, gchar *buf, gpointer data)
 {
+  char* nl=strchr(buf, '\n');
+  if(nl) { *nl = '\0'; }
 	printf("RECEIVED[%s]\n", buf);
   if (len == 1 && buf[0] == '\0')
     g_main_loop_quit (gloop);
