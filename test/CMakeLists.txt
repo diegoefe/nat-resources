@@ -1,8 +1,9 @@
 set(ibase $ENV{HOME}/local)
-message("Searching for libs in ${ibase}")
+#message("Searching for libs in ${ibase}")
 
 option(USE_PJSIP "Use pjsip library" ON)
 option(USE_NICE "Use libnice library" ON)
+option(USE_RE "Use libre library" ON)
 
 configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR}/np1/common.sh @ONLY)
@@ -35,7 +36,7 @@ if(USE_PJSIP)
     endif()
 
     list(APPEND pjs ${pjnat} ${pju} ${pj} OpenSSL::SSL OpenSSL::Crypto ${uuid} dl)
-    message("pjs(${pjs})")
+    #message("pjs(${pjs})")
 
     add_executable(ice_pj_ori icedemo.c)
     target_link_libraries(ice_pj_ori ${pjs} pthread m)
@@ -80,4 +81,20 @@ if(USE_NICE)
     configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 endif()
 
+if(USE_RE)
+    # libre
+    include_directories(${ibase}/include/re)
+    find_library(libre NAMES libre.a PATH ${ibase}/lib)
+
+    if(libre STREQUAL libre-NOTFOUND)
+        message(FATAL_ERROR "libre not found!")
+    endif()
+
+    list(APPEND res ${libre})
+
+    add_executable(turn_re re_turn.c)
+    target_link_libraries(turn_re ${res})
+
+    configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
+endif()
 

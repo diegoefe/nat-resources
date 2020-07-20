@@ -37,17 +37,17 @@ static struct app_t
     /* Command line options are stored here */
     struct options
     {
-	unsigned    comp_cnt;
-	pj_str_t    ns;
-	int	    max_host;
-	pj_bool_t   regular;
-	pj_str_t    stun_srv;
-	pj_str_t    turn_srv;
-	pj_bool_t   turn_tcp;
-	pj_str_t    turn_username;
-	pj_str_t    turn_password;
-	pj_bool_t   turn_fingerprint;
-	const char *log_file;
+		unsigned    comp_cnt;
+		pj_str_t    ns;
+		int	    max_host;
+		pj_bool_t   regular;
+		pj_str_t    stun_srv;
+		pj_str_t    turn_srv;
+		pj_bool_t   turn_tcp;
+		pj_str_t    turn_username;
+		pj_str_t    turn_password;
+		pj_bool_t   turn_fingerprint;
+		const char *log_file;
     } opt;
 
     /* Our global variables */
@@ -198,11 +198,7 @@ static pj_status_t handle_events(unsigned max_msec, unsigned *p_count)
 static int icedemo_worker_thread(void *unused)
 {
     PJ_UNUSED_ARG(unused);
-
-    while (!icedemo.thread_quit_flag) {
-	handle_events(500, NULL);
-    }
-
+    while (!icedemo.thread_quit_flag) {	handle_events(500, NULL);  }
     return 0;
 }
 
@@ -959,9 +955,9 @@ static void icedemo_start_nego(void)
 				     icedemo.rem.cand_cnt,
 				     icedemo.rem.cand);
     if (status != PJ_SUCCESS)
-	icedemo_perror("Error starting ICE", status);
+		icedemo_perror("Error starting ICE", status);
     else
-	PJ_LOG(3,(THIS_FILE, "ICE negotiation started"));
+		PJ_LOG(3,(THIS_FILE, "ICE negotiation started"));
 }
 
 
