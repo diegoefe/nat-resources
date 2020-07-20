@@ -7,13 +7,13 @@
 
 
 ## Libraries
-| Library | Version | Link | Notes |
-| -------| --------| -----| ----|
-| pjsip | 2.7.2 | [download](http://www.pjsip.org/download.htm) | |
-| nice | 0.1.14.1 | [download](https://gitlab.freedesktop.org/libnice/libnice/-/archive/master/libnice-master.tar.gz) | Requires glib/gobject/gthread/gio|
-| libre | 0.5.8 | [download](http://www.creytiv.com/pub) | ICE does not support TCP |
-| sourcey | 1.1.4 | [download](https://github.com/sourcey/libsourcey/archive/1.1.4.tar.gz) | |
-| reciprocate | 1.10.2 | [download](https://github.com/resiprocate/resiprocate/archive/resiprocate-1.10.2.tar.gz) | |
+| Library | Version | Website | Link | Notes |
+| -------| --------| -----| -----| ----|
+| pjsip | 2.7.2 | [home](http://www.pjsip.org) | [download](http://www.pjsip.org/download.htm) | |
+| nice | 0.1.14.1 | [home](https://gitlab.freedesktop.org/libnice/libnice/) | [download](https://gitlab.freedesktop.org/libnice/libnice/-/archive/master/libnice-master.tar.gz) | Requires glib/gobject/gthread/gio|
+| libre | 0.5.8 | [home](http://www.creytiv.com) | [download](http://www.creytiv.com/pub) | ICE does not support TCP |
+| sourcey | 1.1.4 | [home](https://github.com/sourcey/libsourcey/) | [download](https://github.com/sourcey/libsourcey/archive/1.1.4.tar.gz) | |
+| reciprocate | 1.10.2 | [home](https://github.com/resiprocate/resiprocate) | [download](https://github.com/resiprocate/resiprocate/archive/resiprocate-1.10.2.tar.gz) | |
 
 [List of public STUN servers](stun_servers.txt)
 
