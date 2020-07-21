@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <re.h>
 
@@ -26,11 +27,68 @@ static struct {
 	.psize   = 160
 };
 
+void signal_handler(int signum)
+{
+	static bool term = false;
+	(void)signum;
+
+	if (term) {
+		re_fprintf(stderr, "forced exit\n");
+		exit(2);
+	}
+
+	re_fprintf(stderr, "cancelled\n");
+	term = true;
+
+	#if 0
+	if (gallocator.num_received > 0) {
+		time_t duration = time(NULL) - gallocator.traf_start_time;
+
+		allocator_stop_senders(&gallocator);
+
+		re_printf("total duration: %H\n", fmt_human_time, &duration);
+
+		re_printf("wait 1 second for traffic to settle..\n");
+		tmr_start(&turnperf.tmr_grace, 1000, tmr_grace_handler, 0);
+	}
+	else {
+	#endif
+		re_cancel();
+	//}
+}
+
+
+void terminate(int err)
+{
+	turnperf.err = err;
+	re_cancel();
+}
+
+void dns_handler(int err, const struct sa *srv, void *arg)
+{
+	(void)arg;
+
+	if (err)
+		goto out;
+
+	re_printf("resolved TURN-server: %J\n", srv);
+
+	turnperf.srv = *srv;
+
+	/* create a bunch of allocations, with timing */
+	// allocator_start(&gallocator);
+
+ out:
+	if (err)
+		terminate(err);
+}
 
 int main() {
 	const char *host = MY_TURN_HOST;
 	struct dnsc *dnsc = NULL;
 	int maxfds = 4096;
+	uint64_t dport = STUN_PORT;
+	uint16_t port = 0;
 	bool secure = false;
 	int err = libre_init();
 	if(err) {
@@ -92,20 +150,28 @@ int main() {
 		err = EPROTONOSUPPORT;
 		goto out;
 	}
+
+	err = stun_server_discover(&turnperf.dns, dnsc,
+										stun_usage, stun_proto,
+										AF_INET, host, port,
+										dns_handler, NULL);
+	if (err) {
+		re_fprintf(stderr, "stun discover failed (%m)\n",
+				err);
+		goto out;
+	}
 	
+	re_main(signal_handler);
 
-#if 0
-	struct turnc* sTC;
-
-	err = turnc_alloc(&sTC, const struct stun_conf *conf, int proto,
-		void *sock, int layer, const struct sa *srv,
-		MY_TURN_USER, MY_TURN_PASS,
-		uint32_t lifetime, turnc_h *th, void *arg);
-
-#endif
+	if (turnperf.err) {
+		re_fprintf(stderr, "turn performance failed (%m)\n",
+			   turnperf.err);
+		goto out;
+	}
 
  out:
-	// mem_deref(sTC);
+	mem_deref(turnperf.tls);
+	mem_deref(turnperf.dns);
 	mem_deref(dnsc);
 	libre_close();
 
