@@ -11,7 +11,7 @@ if(USE_RE)
 
     list(APPEND res ${libre} OpenSSL::SSL OpenSSL::Crypto dl pthread)
 
-    add_executable(turn_re turnc.c)
+    add_executable(turn_re turnc.c util.c)
     target_link_libraries(turn_re ${res})
 endif()
 
