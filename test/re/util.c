@@ -1,6 +1,4 @@
-#include <stdint.h>
-#include <re.h>
-#include <re.h>
+#include "util.h"
 
 int dns_init(struct dnsc **dnsc)
 {

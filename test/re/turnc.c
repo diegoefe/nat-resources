@@ -5,6 +5,27 @@
 #include <stdint.h>
 #include <re.h>
 
+
+static struct {
+	const char *user, *pass;
+	struct sa srv;
+	int proto;
+	int err;
+	unsigned bitrate;
+	size_t psize;
+	struct tmr tmr_grace;
+	struct tls *tls;
+	struct stun_dns *dns;
+	bool turn_ind;
+} turnperf = {
+	.user    = MY_TURN_USER,
+	.pass    = MY_TURN_PASS,
+	.proto   = IPPROTO_UDP,
+	.bitrate = 64000,
+	.psize   = 160
+};
+
+
 int main() {
 	struct dnsc *dnsc = NULL;
 	int maxfds = 4096;
