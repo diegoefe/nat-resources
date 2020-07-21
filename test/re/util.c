@@ -23,3 +23,18 @@ int dns_init(struct dnsc **dnsc)
  out:
 	return err;
 }
+
+const char *protocol_name(int proto, bool secure)
+{
+	if (secure) {
+		switch (proto) {
+
+		case IPPROTO_UDP: return "DTLS";
+		case IPPROTO_TCP: return "TLS";
+		default: return "???";
+		}
+	}
+	else {
+		return net_proto2name(proto);
+	}
+}

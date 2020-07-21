@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <re.h>
 
+#include "util.h"
 
 static struct {
 	const char *user, *pass;
@@ -27,8 +28,10 @@ static struct {
 
 
 int main() {
+	const char *host = MY_TURN_HOST;
 	struct dnsc *dnsc = NULL;
 	int maxfds = 4096;
+	bool secure = false;
 	int err = libre_init();
 	if(err) {
 		re_fprintf(stderr, "re init failed: %s\n", strerror(err));
@@ -66,6 +69,30 @@ int main() {
 		(void)re_fprintf(stderr, "dnsinit: %m\n", err);
 		goto out;
 	}
+
+	re_printf("bitrate: %u bits/second (per allocation)\n",  turnperf.bitrate);
+
+	re_printf("server: %s protocol=%s\n",
+			  host, protocol_name(turnperf.proto, secure));
+
+	const char *stun_proto, *stun_usage;
+	stun_usage = secure ? stuns_usage_relay : stun_usage_relay;
+
+	switch (turnperf.proto) {
+
+	case IPPROTO_UDP:
+		stun_proto = stun_proto_udp;
+		break;
+
+	case IPPROTO_TCP:
+		stun_proto = stun_proto_tcp;
+		break;
+
+	default:
+		err = EPROTONOSUPPORT;
+		goto out;
+	}
+	
 
 #if 0
 	struct turnc* sTC;

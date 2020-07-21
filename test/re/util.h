@@ -5,5 +5,6 @@
 #include <re.h>
 
 int dns_init(struct dnsc **dnsc);
+const char *protocol_name(int proto, bool secure);
 
 #endif
