@@ -16,6 +16,8 @@ struct hdr {
 	uint8_t payload[256];
 };
 
+extern const uint32_t proto_magic;
+
 typedef void (allocation_h)(int err, uint16_t scode, const char *reason,
 			    const struct sa *srv,  const struct sa *relay,
 			    void *arg);

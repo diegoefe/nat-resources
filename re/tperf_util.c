@@ -13,7 +13,7 @@ enum {
 	REDIRC_MAX = 16,
 };
 
-static const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
+const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
 
 void destructor(void *arg)
 {

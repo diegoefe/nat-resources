@@ -91,8 +91,6 @@ void tmr_ui_handler(void *arg)
 		   fmt_human_time, &duration);
 }
 
-static const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
-
 int allocation_tx(struct allocation *alloc, struct mbuf *mb)
 {
 	int err;
