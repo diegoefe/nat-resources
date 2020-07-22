@@ -1,17 +1,3 @@
-set(ibase $ENV{HOME}/local)
-#message("Searching for libs in ${ibase}")
-
-option(USE_PJSIP "Use pjsip library" ON)
-option(USE_NICE "Use libnice library" ON)
-option(USE_RE "Use libre library" ON)
-
-configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
-configure_file(common.sh ${CMAKE_CURRENT_BINARY_DIR}/np1/common.sh @ONLY)
-
-set(OPENSSL_USE_STATIC_LIBS 1)
-#set(OPENSSL_ROOT_DIR ${ibase})
-find_package(OpenSSL REQUIRED)
-
 if(USE_PJSIP)
     # pjsip
     include_directories(${ibase}/include)
@@ -81,4 +67,3 @@ if(USE_NICE)
     configure_file(run_nice.sh ${CMAKE_CURRENT_BINARY_DIR} @ONLY)
 endif()
 
-add_subdirectory(re)
