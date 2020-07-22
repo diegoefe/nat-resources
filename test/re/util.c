@@ -13,7 +13,7 @@ enum {
 	REDIRC_MAX = 16,
 };
 
-const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
+static const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
 
 void destructor(void *arg)
 {
@@ -565,6 +565,8 @@ void tcp_estab_handler(void *arg)
 	struct allocation *alloc = arg;
 	int err;
 
+	re_printf("allocation: TCP established\n");
+
 	alloc->mb = mem_deref(alloc->mb);
 
 	err = turnc_alloc(&alloc->turnc, NULL, IPPROTO_TCP, alloc->tc, 0,
@@ -579,6 +581,7 @@ void tcp_recv_handler(struct mbuf *mb_pkt, void *arg)
 	struct allocation *alloc = arg;
 	int err = 0;
 
+	re_printf("TCP received\n");
 	/* re-assembly of fragments */
 	if (alloc->mb) {
 		size_t pos;

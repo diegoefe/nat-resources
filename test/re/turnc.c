@@ -91,11 +91,109 @@ void tmr_ui_handler(void *arg)
 		   fmt_human_time, &duration);
 }
 
+static const uint32_t proto_magic = 'T'<<24 | 'P'<<16 | 'R'<<8 | 'F';
+
+int allocation_tx(struct allocation *alloc, struct mbuf *mb)
+{
+	int err;
+
+	if (!alloc || mbuf_get_left(mb) < 4)
+		return EINVAL;
+
+
+	err = udp_send(alloc->us_tx, &alloc->relay, mb);
+
+	return err;
+}
+
+
+
+int protocol_encode(struct mbuf *mb,
+		    uint32_t session_cookie, uint32_t alloc_id,
+		    uint32_t seq, size_t payload_len, uint8_t pattern)
+{
+	int err = 0;
+
+	err |= mbuf_write_u32(mb, htonl(proto_magic));
+	err |= mbuf_write_u32(mb, htonl(session_cookie));
+	err |= mbuf_write_u32(mb, htonl(alloc_id));
+	err |= mbuf_write_u32(mb, htonl(seq));
+	err |= mbuf_write_u32(mb, htonl((uint32_t)payload_len));
+	err |= mbuf_fill(mb, pattern, payload_len);
+
+	return err;
+}
+
+
+ int send_packet(struct sender *snd)
+{
+	struct mbuf *mb = mbuf_alloc(1024);
+#define PRESZ 48
+	size_t payload_len;
+	int err = 0;
+
+	if (snd->psize < HDR_SIZE)
+		return EINVAL;
+
+	payload_len = snd->psize - HDR_SIZE;
+
+	mb->pos = PRESZ;
+
+	err = protocol_encode(mb, snd->session_cookie, snd->alloc_id,
+			      ++snd->seq, payload_len, PATTERN);
+	if (err)
+		goto out;
+
+	mb->pos = PRESZ;
+
+	err = allocation_tx(snd->alloc, mb);
+	if (err) {
+		re_fprintf(stderr, "sender: allocation_tx(%zu bytes)"
+			   " failed (%m)\n", snd->psize, err);
+		goto out;
+	}
+
+	snd->total_bytes   += mbuf_get_left(mb);
+	snd->total_packets += 1;
+
+ out:
+	mem_deref(mb);
+
+	return err;
+}
+
+
+
+void sender_tick(struct sender *snd, uint64_t now)
+{
+	if (!snd)
+		return;
+
+	if (now >= snd->ts) {
+
+		send_packet(snd);
+		snd->ts += snd->ptime;
+	}
+}
+
+
+void check_all_senders(struct allocator *allocator)
+{
+	uint64_t now = tmr_jiffies();
+	struct le *le;
+
+	for (le = allocator->allocl.head; le; le = le->next) {
+		struct allocation *alloc = le->data;
+
+		sender_tick(alloc->sender, now);
+	}
+}
+
 void tmr_pace_handler(void *arg)
 {
 	struct allocator *allocator = arg;
 
-	//check_all_senders(allocator);
+	check_all_senders(allocator);
 
 	tmr_start(&allocator->tmr_pace, PACING_INTERVAL_MS,
 		  tmr_pace_handler, allocator);
@@ -369,7 +467,6 @@ void dns_handler(int err, const struct sa *srv, void *arg)
 {
 	(void)arg;
 
-	re_fprintf(stderr, "re init failed: %s\n", strerror(err));
 	if (err)
 		goto out;
 
