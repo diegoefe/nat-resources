@@ -26,7 +26,8 @@ static struct {
 	// .proto   = IPPROTO_UDP, 
 	.proto   = IPPROTO_TCP,
 	.bitrate = 64000,
-	.psize   = 160
+	.psize   = 160,
+	.turn_ind = true
 };
 
 #define PACING_INTERVAL_MS 5

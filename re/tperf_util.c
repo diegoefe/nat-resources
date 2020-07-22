@@ -138,6 +138,7 @@ bool is_connection_oriented(const struct allocation *alloc)
 void perm_handler(void *arg)
 {
 	struct allocation *alloc = arg;
+	re_printf("perm_handler: %s\n", alloc->turn_ind ? "Permission" : "Channel");
 
 	re_printf("%s to %J added.\n",
 		  alloc->turn_ind ? "Permission" : "Channel",
@@ -254,10 +255,12 @@ void turnc_handler(int err, uint16_t scode, const char *reason,
 	peer = *mapped_addr;
 	sa_set_port(&peer, sa_port(&alloc->laddr_tx));
 
+	re_printf("Setting peers...\n");
 	err = set_peer(alloc, &peer);
 	if (err)
 		goto term;
 
+	re_printf("done with peers\n");
 	return;
 
  term:
@@ -581,7 +584,7 @@ void tcp_recv_handler(struct mbuf *mb_pkt, void *arg)
 	struct allocation *alloc = arg;
 	int err = 0;
 
-	re_printf("TCP received\n");
+	//re_printf("TCP received\n");
 	/* re-assembly of fragments */
 	if (alloc->mb) {
 		size_t pos;
