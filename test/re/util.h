@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <re.h>
 
-
 #define HDR_SIZE 20
 #define PATTERN 0xa5
 
@@ -17,13 +16,12 @@ struct hdr {
 	uint8_t payload[256];
 };
 
-
 typedef void (allocation_h)(int err, uint16_t scode, const char *reason,
 			    const struct sa *srv,  const struct sa *relay,
 			    void *arg);
 
 struct allocator {
-	//struct list allocl;
+	struct list allocl;
 	struct tmr tmr;
 	struct tmr tmr_ui;
 	unsigned num_allocations;
@@ -43,6 +41,24 @@ struct allocator {
 	struct tmr tmr_pace;
 };
 
+struct sender {
+	struct allocation *alloc;  /* pointer */
+	uint32_t session_cookie;
+	uint32_t alloc_id;
+	uint32_t seq;
+
+	unsigned bitrate;          /* target bitrate [bit/s] */
+	unsigned ptime;
+	size_t psize;
+
+	uint64_t ts;               /* running timestamp */
+	uint64_t ts_start;
+	uint64_t ts_stop;
+
+	uint64_t total_bytes;
+	uint64_t total_packets;
+};
+
 struct receiver {
 	uint32_t cookie;
 	uint32_t allocid;
@@ -52,7 +68,6 @@ struct receiver {
 	uint64_t total_packets;
 	uint32_t last_seq;
 };
-
 
 struct allocation {
 	struct le le;
@@ -96,4 +111,6 @@ int allocation_create(struct allocator *allocator, unsigned ix, int proto,
 		      const char *username, const char *password,
 		      struct tls *tls, bool turn_ind,
 		      allocation_h *alloch, void *arg);
+
+void destructor(void *arg);
 #endif

@@ -32,7 +32,8 @@ static struct {
 #define PACING_INTERVAL_MS 5
 
 static struct allocator gallocator = {
-	.num_allocations = 100,
+	/* .num_allocations = 100, */
+	.num_allocations = 1,
 };
 
 void tmr_grace_handler(void *arg)
@@ -100,6 +101,73 @@ void tmr_pace_handler(void *arg)
 		  tmr_pace_handler, allocator);
 }
 
+int sender_alloc(struct sender **senderp, struct allocation *alloc,
+		 uint32_t session_cookie, uint32_t alloc_id,
+		 unsigned bitrate, unsigned ptime, size_t psize)
+{
+	struct sender *snd;
+	int err = 0;
+
+	if (!senderp || !bitrate)
+		return EINVAL;
+
+	if (ptime < PACING_INTERVAL_MS) {
+		re_fprintf(stderr, "ptime %u is too low\n", ptime);
+		return EINVAL;
+	}
+	if (psize < HDR_SIZE) {
+		re_fprintf(stderr, "sender: bitrate is too low..\n");
+		return EINVAL;
+	}
+
+	snd = mem_zalloc(sizeof(*snd), destructor);
+	if (!snd)
+		return ENOMEM;
+
+	snd->alloc          = alloc;
+	snd->session_cookie = session_cookie;
+	snd->alloc_id       = alloc_id;
+	snd->bitrate        = bitrate;
+	snd->ptime          = ptime;
+	snd->psize          = psize;
+
+	if (err)
+		mem_deref(snd);
+	else
+		*senderp = snd;
+
+	return err;
+}
+
+
+int sender_start(struct sender *snd)
+{
+	if (!snd)
+		return EINVAL;
+
+	snd->ts_start = tmr_jiffies();
+
+	/* random component to smoothe traffic */
+	snd->ts       = tmr_jiffies() + rand_u16() % 100;
+
+	return 0;
+}
+
+int print_bitrate(struct re_printf *pf, double *val)
+{
+	if (*val >= 1000000)
+		return re_hprintf(pf, "%.2f Mbit/s", *val/1000/1000);
+	else if (*val >= 1000)
+		return re_hprintf(pf, "%.2f Kbit/s", *val/1000);
+	else
+		return re_hprintf(pf, "%.2f bit/s", *val);
+}
+
+unsigned calculate_ptime(unsigned bitrate, size_t psize)
+{
+	return (8 * 1000) * (unsigned)psize / bitrate;
+}
+
 
 int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 			    size_t psize)
@@ -109,15 +177,13 @@ int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 	unsigned ptime;
 	int err = 0;
 
-/*
 	ptime = calculate_ptime(bitrate, psize);
 
 	re_printf("starting traffic generators:"
 		  " psize=%zu, ptime=%u (total target bitrate is %H)\n",
 		  psize, ptime, print_bitrate, &tbps);
-*/
 	tmr_start(&allocator->tmr_ui, 1, tmr_ui_handler, allocator);
-/*
+
 	for (le = allocator->allocl.head; le; le = le->next) {
 		struct allocation *alloc = le->data;
 
@@ -138,7 +204,6 @@ int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 			return err;
 		}
 	}
-*/
 	/* start sending timer/thread */
 	tmr_start(&allocator->tmr_pace, PACING_INTERVAL_MS,
 		  tmr_pace_handler, allocator);
@@ -146,6 +211,66 @@ int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 	return 0;
 }
 
+
+void allocator_print_statistics(const struct allocator *allocator)
+{
+	struct le *le;
+	double amin = 99999999, amax = 0, asum = 0, aavg;
+	int ix_min = -1, ix_max = -1;
+
+	/* show allocation summary */
+	if (!allocator || !allocator->num_sent)
+		return;
+
+	for (le = allocator->allocl.head; le; le = le->next) {
+
+		struct allocation *alloc = le->data;
+
+		if (alloc->atime < amin) {
+			amin = alloc->atime;
+			ix_min = alloc->ix;
+		}
+		if (alloc->atime > amax) {
+			amax = alloc->atime;
+			ix_max = alloc->ix;
+		}
+
+		asum += alloc->atime;
+	}
+
+	aavg = asum / allocator->num_sent;
+
+	re_printf("\nAllocation time statistics:\n");
+	re_printf("min: %.1f ms (allocation #%d)\n", amin, ix_min);
+	re_printf("avg: %.1f ms\n", aavg);
+	re_printf("max: %.1f ms (allocation #%d)\n", amax, ix_max);
+	re_printf("\n");
+}
+
+
+void allocator_show_summary(const struct allocator *allocator)
+{
+	if (!allocator)
+		return;
+
+	if (allocator->tock > allocator->tick) {
+		double duration;
+
+		duration = (double)(allocator->tock - allocator->tick);
+
+		re_printf("timing summary: %u allocations created in %.1f ms"
+			  " (%.1f allocations per second)\n",
+			  allocator->num_sent,
+			  duration,
+			  1.0 * allocator->num_sent / (duration / 1000.0));
+	}
+	else {
+		re_fprintf(stderr, "duration was too short..\n");
+	}
+
+	if (allocator->num_sent)
+		allocator_print_statistics(allocator);
+}
 
 void allocation_handler(int err, uint16_t scode, const char *reason,
 			       const struct sa *srv,  const struct sa *relay,
@@ -168,7 +293,7 @@ void allocation_handler(int err, uint16_t scode, const char *reason,
 
 	if (allocator->num_received >= allocator->num_allocations) {
 
-		re_printf("all allocations are ok.\n");
+		re_printf("\nall allocations are ok.\n");
 
 		if (allocator->server_info) {
 			re_printf("\nserver:  %s, authentication=%s\n",
@@ -183,7 +308,7 @@ void allocation_handler(int err, uint16_t scode, const char *reason,
 
 		allocator->tock = tmr_jiffies();
 
-		//allocator_show_summary(allocator);
+		allocator_show_summary(allocator);
 
 		err = allocator_start_senders(allocator, turnperf.bitrate,
 					      turnperf.psize);
@@ -226,8 +351,6 @@ void tmr_handler(void *arg)
 
 	tmr_start(&allocator->tmr, rand_u16()&3, tmr_handler, allocator);
 
-	re_fprintf(stdout, "tmr_handler\n");
-
  out:
 	if (err)
 		terminate(err);
@@ -241,7 +364,6 @@ void allocator_start(struct allocator *allocator)
 	allocator->tick = tmr_jiffies();
 	tmr_start(&allocator->tmr, 0, tmr_handler, allocator);
 }
-
 
 void dns_handler(int err, const struct sa *srv, void *arg)
 {
@@ -351,12 +473,14 @@ int main() {
 	}
 
  out:
+	re_printf("van los mem_deref\n");
 	mem_deref(turnperf.tls);
 	mem_deref(turnperf.dns);
 	mem_deref(dnsc);
 	libre_close();
 
-	mem_debug();
-	tmr_debug();
+	// mem_debug();
+	// tmr_debug();
+	re_printf("Finalizando y retornando %d\n", err);
 	return err;
 }

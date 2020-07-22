@@ -69,7 +69,7 @@ int allocation_create(struct allocator *allocator, unsigned ix, int proto,
 	if (!alloc)
 		return ENOMEM;
 
-	//list_append(&allocator->allocl, &alloc->le, alloc);
+	list_append(&allocator->allocl, &alloc->le, alloc);
 
 	(void)gettimeofday(&alloc->sent, NULL);
 
@@ -328,6 +328,15 @@ const char *protocol_name(int proto, bool secure)
 	}
 }
 
+void sender_stop(struct sender *snd)
+{
+	if (!snd)
+		return;
+
+	snd->ts_stop = tmr_jiffies();
+}
+
+
 void allocator_stop_senders(struct allocator *allocator)
 {
 	struct le *le;
@@ -337,13 +346,11 @@ void allocator_stop_senders(struct allocator *allocator)
 
 	tmr_cancel(&allocator->tmr_ui);
 	tmr_cancel(&allocator->tmr_pace);
-	/*
 	for (le = allocator->allocl.head; le; le = le->next) {
 		struct allocation *alloc = le->data;
 
 		sender_stop(alloc->sender);
 	}
-	*/
 }
 
 
