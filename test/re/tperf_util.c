@@ -1,4 +1,4 @@
-#include "util.h"
+#include "tperf_util.h"
 
 #include <sys/time.h>
 #include <string.h>

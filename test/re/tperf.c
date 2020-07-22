@@ -7,7 +7,7 @@
 #include <time.h>
 #include <re.h>
 
-#include "util.h"
+#include "tperf_util.h"
 
 static struct {
 	const char *user, *pass;

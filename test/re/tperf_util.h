@@ -1,5 +1,5 @@
-#ifndef MY_UTIL_H_INCLUIDO
-#define MY_UTIL_H_INCLUIDO
+#ifndef MY_TPERF_UTIL_H_INCLUIDO
+#define MY_TPERF_UTIL_H_INCLUIDO
 
 #include <stdint.h>
 #include <re.h>
