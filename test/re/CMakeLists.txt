@@ -9,7 +9,7 @@ if(USE_RE)
         message(FATAL_ERROR "libre not found!")
     endif()
 
-    list(APPEND res ${libre} OpenSSL::SSL OpenSSL::Crypto dl pthread)
+    list(APPEND res ${libre} OpenSSL::SSL OpenSSL::Crypto dl pthread z)
 
     add_executable(turn_re turnc.c util.c)
     target_link_libraries(turn_re ${res})
