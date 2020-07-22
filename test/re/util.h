@@ -91,5 +91,9 @@ int dns_init(struct dnsc **dnsc);
 const char *protocol_name(int proto, bool secure);
 void allocator_stop_senders(struct allocator *allocator);
 int start(struct allocation *alloc);
-
+int allocation_create(struct allocator *allocator, unsigned ix, int proto,
+		      const struct sa *srv,
+		      const char *username, const char *password,
+		      struct tls *tls, bool turn_ind,
+		      allocation_h *alloch, void *arg);
 #endif

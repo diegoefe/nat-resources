@@ -50,7 +50,6 @@ void receiver_init(struct receiver *recvr,
 	recvr->allocid = exp_allocid;
 }
 
-
 int allocation_create(struct allocator *allocator, unsigned ix, int proto,
 		      const struct sa *srv,
 		      const char *username, const char *password,

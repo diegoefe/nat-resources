@@ -23,7 +23,8 @@ static struct {
 } turnperf = {
 	.user    = MY_TURN_USER,
 	.pass    = MY_TURN_PASS,
-	.proto   = IPPROTO_UDP,
+	// .proto   = IPPROTO_UDP, 
+	.proto   = IPPROTO_TCP,
 	.bitrate = 64000,
 	.psize   = 160
 };
@@ -225,6 +226,8 @@ void tmr_handler(void *arg)
 
 	tmr_start(&allocator->tmr, rand_u16()&3, tmr_handler, allocator);
 
+	re_fprintf(stdout, "tmr_handler\n");
+
  out:
 	if (err)
 		terminate(err);
@@ -244,6 +247,7 @@ void dns_handler(int err, const struct sa *srv, void *arg)
 {
 	(void)arg;
 
+	re_fprintf(stderr, "re init failed: %s\n", strerror(err));
 	if (err)
 		goto out;
 
@@ -260,6 +264,7 @@ void dns_handler(int err, const struct sa *srv, void *arg)
 }
 
 int main() {
+	// const char *host = MY_TURN_HOST;
 	const char *host = MY_TURN_HOST;
 	struct dnsc *dnsc = NULL;
 	int maxfds = 4096;
