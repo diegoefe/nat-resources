@@ -147,16 +147,14 @@ void perm_handler(void *arg)
 	alloc->alloch(0, 0, "OK", &alloc->srv, &alloc->relay, alloc->arg);
 }
 
-int set_peer(struct allocation *alloc, const struct sa *peer)
-{
+int set_peer(struct allocation *alloc, const struct sa *peer) {
 	alloc->peer = *peer;
-
 	tmr_start(&alloc->tmr_ping, PING_INTERVAL, tmr_ping_handler, alloc);
-
-	if (alloc->turn_ind)
+	if (alloc->turn_ind) {
 		return turnc_add_perm(alloc->turnc, peer, perm_handler, alloc);
-	else
+	} else {
 		return turnc_add_chan(alloc->turnc, peer, perm_handler, alloc);
+	}
 }
 
 void turnc_handler(int err, uint16_t scode, const char *reason,
@@ -170,44 +168,34 @@ void turnc_handler(int err, uint16_t scode, const char *reason,
 	struct timeval now;
 	struct sa peer;
 
-	if (err) {
-		(void)re_fprintf(stderr, "[%u] turn error: %m\n",
-				 alloc->ix, err);
+	if(err) {
+		(void)re_fprintf(stderr, "[%u] turn error: %m\n", alloc->ix, err);
 		alloc->err = err;
 		goto term;
 	}
 
-	if (scode) {
-
-		if (scode == 300 && is_connection_oriented(alloc) &&
-		    alloc->redirc++ < REDIRC_MAX) {
-
+	if(scode) {
+		if(scode == 300 && is_connection_oriented(alloc) && alloc->redirc++ < REDIRC_MAX) {
 			const struct stun_attr *alt;
-
 			alt = stun_msg_attr(msg, STUN_ATTR_ALT_SERVER);
 			if (!alt)
 				goto term;
 
 			re_printf("[%u] redirecting to new server %J\n",
 				  alloc->ix, &alt->v.alt_server);
-
 			alloc->srv = alt->v.alt_server;
-
 			alloc->turnc = mem_deref(alloc->turnc);
 			alloc->tlsc  = mem_deref(alloc->tlsc);
 			alloc->tc    = mem_deref(alloc->tc);
 			alloc->dtls_sock = mem_deref(alloc->dtls_sock);
 			alloc->us    = mem_deref(alloc->us);
-
 			err = start(alloc);
-			if (err)
+			if(err) {
 				goto term;
-
+			}
 			return;
 		}
-
-		(void)re_fprintf(stderr, "[%u] turn error: %u %s\n",
-				 alloc->ix, scode, reason);
+		(void)re_fprintf(stderr, "[%u] turn error: %u %s\n", alloc->ix, scode, reason);
 		alloc->err = EPROTO;
 		goto term;
 	}
@@ -267,7 +255,6 @@ void turnc_handler(int err, uint16_t scode, const char *reason,
 	alloc->alloch(err, scode, reason, NULL, NULL, alloc->arg);
 }
 
-
 void dtls_estab_handler(void *arg)
 {
 	struct allocation *alloc = arg;
@@ -290,7 +277,6 @@ void dtls_estab_handler(void *arg)
 	if (err)
 		alloc->alloch(err, 0, NULL, NULL, NULL, alloc->arg);
 }
-
 
 int dns_init(struct dnsc **dnsc)
 {
@@ -339,7 +325,6 @@ void sender_stop(struct sender *snd)
 	snd->ts_stop = tmr_jiffies();
 }
 
-
 void allocator_stop_senders(struct allocator *allocator)
 {
 	struct le *le;
@@ -351,11 +336,9 @@ void allocator_stop_senders(struct allocator *allocator)
 	tmr_cancel(&allocator->tmr_pace);
 	for (le = allocator->allocl.head; le; le = le->next) {
 		struct allocation *alloc = le->data;
-
 		sender_stop(alloc->sender);
 	}
 }
-
 
 int protocol_decode(struct hdr *hdr, struct mbuf *mb)
 {
@@ -398,18 +381,16 @@ int protocol_decode(struct hdr *hdr, struct mbuf *mb)
 	mbuf_advance(mb, hdr->payload_len);
 
  out:
-	if (err)
+	if(err) {
 		mb->pos = start;
-
+	}
 	return 0;
 }
 
-
-void protocol_packet_dump(const struct hdr *hdr)
-{
-	if (!hdr)
+void protocol_packet_dump(const struct hdr *hdr) {
+	if (!hdr) {
 		return;
-
+	}
 	re_fprintf(stderr, "--- protocol packet: ---\n");
 	re_fprintf(stderr, "session_cookie: 0x%08x\n", hdr->session_cookie);
 	re_fprintf(stderr, "alloc_id:       %u\n", hdr->alloc_id);
@@ -419,7 +400,6 @@ void protocol_packet_dump(const struct hdr *hdr)
 		   hdr->payload, hdr->payload_len);
 	re_fprintf(stderr, "\n");
 }
-
 
 int receiver_recv(struct receiver *recvr,
 		  const struct sa *src, struct mbuf *mb)
@@ -494,10 +474,7 @@ int receiver_recv(struct receiver *recvr,
 	return 0;
 }
 
-
-void data_handler(struct allocation *alloc, const struct sa *src,
-			 struct mbuf *mb)
-{
+void data_handler(struct allocation *alloc, const struct sa *src, struct mbuf *mb) {
 	int err;
 
 	if (!alloc->ok) {
@@ -528,8 +505,7 @@ void data_handler(struct allocation *alloc, const struct sa *src,
 	}
 }
 
-void dtls_recv_handler(struct mbuf *mb, void *arg)
-{
+void dtls_recv_handler(struct mbuf *mb, void *arg) {
 	struct allocation *alloc = arg;
 	struct sa src;
 	int err;
@@ -550,16 +526,13 @@ void dtls_recv_handler(struct mbuf *mb, void *arg)
 void dtls_close_handler(int err, void *arg)
 {
 	struct allocation *alloc = arg;
-
 	re_fprintf(stderr, "dtls: close (%m)\n", err);
-
 	alloc->alloch(err ? err : ECONNRESET, 0, NULL, NULL, NULL, alloc->arg);
 }
 
 void udp_recv(const struct sa *src, struct mbuf *mb, void *arg)
 {
 	struct allocation *alloc = arg;
-
 	data_handler(alloc, src, mb);
 }
 

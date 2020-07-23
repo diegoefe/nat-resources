@@ -43,7 +43,6 @@ void tmr_grace_handler(void *arg)
 	re_cancel();
 }
 
-
 void signal_handler(int signum)
 {
 	static bool term = false;
@@ -87,7 +86,6 @@ void tmr_ui_handler(void *arg)
 	static size_t uic = 0;
 
 	tmr_start(&allocator->tmr_ui, 50, tmr_ui_handler, allocator);
-
 	re_fprintf(stderr, "\r%c %H", uiv[ uic++ % (sizeof(uiv)-1) ],
 		   fmt_human_time, &duration);
 }
@@ -99,13 +97,10 @@ int allocation_tx(struct allocation *alloc, struct mbuf *mb)
 	if (!alloc || mbuf_get_left(mb) < 4)
 		return EINVAL;
 
-
 	err = udp_send(alloc->us_tx, &alloc->relay, mb);
 
 	return err;
 }
-
-
 
 int protocol_encode(struct mbuf *mb,
 		    uint32_t session_cookie, uint32_t alloc_id,
@@ -123,8 +118,7 @@ int protocol_encode(struct mbuf *mb,
 	return err;
 }
 
-
- int send_packet(struct sender *snd)
+int send_packet(struct sender *snd)
 {
 	struct mbuf *mb = mbuf_alloc(1024);
 #define PRESZ 48
@@ -161,8 +155,6 @@ int protocol_encode(struct mbuf *mb,
 	return err;
 }
 
-
-
 void sender_tick(struct sender *snd, uint64_t now)
 {
 	if (!snd)
@@ -174,7 +166,6 @@ void sender_tick(struct sender *snd, uint64_t now)
 		snd->ts += snd->ptime;
 	}
 }
-
 
 void check_all_senders(struct allocator *allocator)
 {
@@ -265,7 +256,6 @@ unsigned calculate_ptime(unsigned bitrate, size_t psize)
 	return (8 * 1000) * (unsigned)psize / bitrate;
 }
 
-
 int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 			    size_t psize)
 {
@@ -307,7 +297,6 @@ int allocator_start_senders(struct allocator *allocator, unsigned bitrate,
 
 	return 0;
 }
-
 
 void allocator_print_statistics(const struct allocator *allocator)
 {
